@@ -1,5 +1,4 @@
 ﻿using ScaleManagment;
-
 using System;
 using System.Windows.Forms;
 
@@ -16,10 +15,6 @@ namespace TereziEla
             mainForm = form;
 
         }
-
-     
-
-       
 
         private void button1_Click(object sender, EventArgs e)
         {

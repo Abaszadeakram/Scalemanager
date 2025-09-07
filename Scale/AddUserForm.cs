@@ -1,15 +1,7 @@
 ﻿using ScaleManagment;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace TereziEla
 {
@@ -42,9 +34,8 @@ namespace TereziEla
                 this.Close();
             }
 
-           
             string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
-            string istiafadeciadi= textBox1.Text.Trim();
+            string istiafadeciadi = textBox1.Text.Trim();
 
             if (string.IsNullOrEmpty(istiafadeciadi))
             {
@@ -93,5 +84,4 @@ namespace TereziEla
             this.Close();
         }
     }
-    }
-
+}
