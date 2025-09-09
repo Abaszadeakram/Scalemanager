@@ -3,6 +3,7 @@ using System;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Text;
 using System.Windows.Forms;
 using TereziEla;
 
@@ -254,6 +255,32 @@ namespace ScaleManagment
         private void btnDelete_Click(object sender, EventArgs e)
         {
 
+
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;TrustServerCertificate=True";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                
+                foreach (ListViewItem item in listView.CheckedItems)
+                {
+
+                    string userName = item.Text;
+
+
+                    string query = "DELETE FROM tblDatas WHERE [Istifadeci adi] = @userName"; ;  
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@userName", userName);  
+                        cmd.ExecuteNonQuery(); 
+                    }
+
+                    
+                    listView.Items.Remove(item);
+                }
+            }
         }
         public void AddUserToListView(string username)
         {
@@ -450,13 +477,14 @@ namespace ScaleManagment
             Image resizedImage = new Bitmap(originalImage, new Size(originalImage.Width / 18, originalImage.Height / 18));  // Burada şəkili yarıya endiririk
             btnExport.Image = resizedImage;
             btnExport.TextImageRelation = TextImageRelation.ImageBeforeText;
-            btnExport.Location = new Point(1100, 6);
+            btnExport.Location = new Point(1100, 5);
             btnExport.Width = 150;
             btnExport.Height = 30;
 
             btnExport.FlatStyle = FlatStyle.Flat;
 
-            btnExport.Font = new Font("Arial", 11);
+            btnExport.Font = new Font("Arial", 10);
+           
             btnExport.FlatAppearance.BorderSize = 0;
             scaleInfoContent.Controls.Add(btnExport);
 
@@ -546,6 +574,367 @@ namespace ScaleManagment
             listView.DrawSubItem += (s, args) => args.DrawDefault = true;
 
             scaleInfoContent.Controls.Add(listView);
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select*from dbo.gates";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string giris = reader["weight_in"].ToString();
+                    string cixis = reader["weight_out"].ToString();
+                    string umumiceki = reader["weight_total"].ToString();
+
+                    DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
+                    DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
+
+                    string kart = reader["card"].ToString();
+                    string grade = reader["sort"].ToString();
+                    string post = reader["post"].ToString();
+                    string masin = reader["carnumber"].ToString();
+
+                    ListViewItem item = new ListViewItem(giris);
+                    item.SubItems.Add(cixis);
+                    item.SubItems.Add(umumiceki);
+                    item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
+                    item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
+                    item.SubItems.Add(kart);
+                    item.SubItems.Add(grade);
+                    item.SubItems.Add(post);
+                    item.SubItems.Add(masin);
+
+                    listView.Items.Add(item);
+                }
+
+                reader.Close();
+            }
+
+            Panel bottomPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40
+            };
+
+            Label lblCount = new Label
+            {
+                Text = "Sətir sayı: " + listView.Items.Count,
+                Location = new Point(12, -1),
+                AutoSize = true
+            };
+
+            Button btnPrev = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
+            btnPrev.FlatStyle = FlatStyle.Flat;
+            btnPrev.FlatAppearance.BorderSize = 0;
+
+            Button btnPage1 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
+            btnPage1.FlatStyle = FlatStyle.Flat;
+            btnPage1.Click += new EventHandler(button1_Click);
+            btnPage1.FlatAppearance.BorderSize = 0;
+            Button btnPage2 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
+            btnPage2.FlatStyle = FlatStyle.Flat;
+            btnPage2.FlatAppearance.BorderSize = 0;
+            btnPage2.Click += new EventHandler(button2_Click);
+            Button btnPage3 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
+            btnPage3.FlatStyle = FlatStyle.Flat;
+            btnPage3.FlatAppearance.BorderSize = 0;
+            btnPage3.Click += new EventHandler(button3_Click);
+            Button btnPage4 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
+            btnPage4.FlatStyle = FlatStyle.Flat;
+            btnPage4.FlatAppearance.BorderSize = 0;
+            btnPage4.Click += new EventHandler(button4_Click);
+            Button btnPage5 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
+            btnPage5.FlatStyle = FlatStyle.Flat;
+            btnPage5.FlatAppearance.BorderSize = 0;
+            btnPage5.Click += new EventHandler(button5_Click);
+            Button btnPage6 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
+            btnPage6.FlatStyle = FlatStyle.Flat;
+            btnPage6.Click += new EventHandler(button6_Click);
+            btnPage6.FlatAppearance.BorderSize = 0;
+            Button btnPage7 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 };
+            btnPage7.FlatStyle = FlatStyle.Flat;
+            btnPage7.FlatAppearance.BorderSize = 0;
+            btnPage7.Click += new EventHandler(button7_Click);
+            Button btnNext = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
+            btnNext.FlatStyle = FlatStyle.Flat;
+            btnNext.FlatAppearance.BorderSize = 0;
+
+            Label lblSehife = new Label
+            {
+                Text = "7/səhifə ",
+                Location = new Point(1000, -1),
+                AutoSize = true
+            };
+
+            Label lblSehifeyekecid = new Label
+            {
+                Text = "Səhifəyə keç: ",
+                Location = new Point(1100, -1),
+                AutoSize = true
+            };
+
+            bottomPanel.Controls.Add(lblCount);
+            bottomPanel.Controls.Add(btnPrev);
+            bottomPanel.Controls.Add(btnPage1);
+            bottomPanel.Controls.Add(btnPage2);
+            bottomPanel.Controls.Add(btnPage3);
+            bottomPanel.Controls.Add(btnPage4);
+            bottomPanel.Controls.Add(btnPage5);
+            bottomPanel.Controls.Add(btnPage6);
+            bottomPanel.Controls.Add(btnPage7);
+            bottomPanel.Controls.Add(btnNext);
+            bottomPanel.Controls.Add(lblSehife);
+            bottomPanel.Controls.Add(lblSehifeyekecid);
+
+            this.Controls.Add(bottomPanel);
+
+            mainLayout.Controls.Add(topPanel, 0, 0);
+            mainLayout.Controls.Add(listView, 0, 1);
+            mainLayout.Controls.Add(bottomPanel, 0, 2);
+
+            scaleInfoContent.Controls.Add(mainLayout);
+            btnExport.Click += new EventHandler(btnExport_Click);
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+
+            ListView listView = new ListView
+            {
+                Dock = DockStyle.Fill,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                CheckBoxes = true,
+                BorderStyle = BorderStyle.None
+
+            };
+
+            listView.Columns.Add("Giriş çəkisi", 120);
+            listView.Columns.Add("Çıxış çəkisi", 120);
+            listView.Columns.Add("Ümumi çəki", 150);
+            listView.Columns.Add("Giriş tarixi", 150);
+            listView.Columns.Add("Çıxış tarixi", 150);
+            listView.Columns.Add("Kart", 100);
+            listView.Columns.Add("Grade", 150);
+            listView.Columns.Add("Post", 150);
+            listView.Columns.Add("Maşın nömrəsi", 150);
+
+            listView.OwnerDraw = true;
+
+            listView.DrawColumnHeader += (s, args) =>
+            {
+                using (Font f = new Font("Segoe UI", 8, FontStyle.Bold))
+                using (StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(243, 244, 246)))
+                {
+                    args.Graphics.FillRectangle(brush, args.Bounds);
+                    args.Graphics.DrawRectangle(Pens.LightGray, args.Bounds);
+                    args.Graphics.DrawString(args.Header.Text, f, Brushes.Black, args.Bounds, sf);
+                }
+                listView.CheckBoxes = true;
+            };
+
+            listView.DrawItem += (s, args) => args.DrawDefault = true;
+            listView.DrawSubItem += (s, args) => args.DrawDefault = true;
+
+            scaleInfoContent.Controls.Add(listView);
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select*from dbo.gates";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string giris = reader["weight_in"].ToString();
+                    string cixis = reader["weight_out"].ToString();
+                    string umumiceki = reader["weight_total"].ToString();
+
+                    DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
+                    DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
+
+                    string kart = reader["card"].ToString();
+                    string grade = reader["sort"].ToString();
+                    string post = reader["post"].ToString();
+                    string masin = reader["carnumber"].ToString();
+
+                    ListViewItem item = new ListViewItem(giris);
+                    item.SubItems.Add(cixis);
+                    item.SubItems.Add(umumiceki);
+                    item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
+                    item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
+                    item.SubItems.Add(kart);
+                    item.SubItems.Add(grade);
+                    item.SubItems.Add(post);
+                    item.SubItems.Add(masin);
+
+                    listView.Items.Add(item);
+                }
+
+                reader.Close();
+            }
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "CSV files (*.csv)|*.csv";
+            saveFileDialog.Title = "CSV faylını saxla";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(saveFileDialog.FileName, false, Encoding.UTF8))
+                {
+
+                    for (int i = 0; i < listView.Columns.Count; i++)
+                    {
+                        sw.Write(listView.Columns[i].Text);
+                        if (i < listView.Columns.Count - 1) sw.Write(",");
+                    }
+                    sw.WriteLine();
+
+
+                    foreach (ListViewItem item in listView.Items)
+                    {
+                        for (int i = 0; i < item.SubItems.Count; i++)
+                        {
+                            sw.Write(item.SubItems[i].Text);
+                            if (i < item.SubItems.Count - 1) sw.Write(",");
+                        }
+                        sw.WriteLine();
+                    }
+                }
+
+                MessageBox.Show("Məlumat uğurla CSV-ə ixrac edildi!");
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            scaleInfoContent.Controls.Clear();
+
+            TableLayoutPanel mainLayout = new TableLayoutPanel();
+            mainLayout.Dock = DockStyle.Fill;
+            mainLayout.RowCount = 3;
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+
+            Panel topPanel = new Panel { Dock = DockStyle.Fill };
+
+            TextBox txtSearch = new TextBox
+            {
+                Location = new Point(10, 8),
+                Width = 200
+            };
+
+            Button btnExport = new Button();
+            btnExport.Text = " File export";
+            btnExport.Image = Image.FromFile("C:\\Users\\Akbar\\Documents\\pictures\\images (5).png");
+            Image originalImage = btnExport.Image;
+            Image resizedImage = new Bitmap(originalImage, new Size(originalImage.Width / 18, originalImage.Height / 18));  // Burada şəkili yarıya endiririk
+            btnExport.Image = resizedImage;
+            btnExport.TextImageRelation = TextImageRelation.ImageBeforeText;
+            btnExport.Location = new Point(1100, 5);
+            btnExport.Width = 150;
+            btnExport.Height = 30;
+
+            btnExport.FlatStyle = FlatStyle.Flat;
+
+            btnExport.Font = new Font("Arial", 10);
+
+            btnExport.FlatAppearance.BorderSize = 0;
+            scaleInfoContent.Controls.Add(btnExport);
+            scaleInfoContent.Controls.Clear();
+            TextBox searchBox = new TextBox();
+            searchBox.Size = new Size(130, 20);
+            searchBox.BorderStyle = BorderStyle.None;
+            searchBox.Location = new Point(scaleInfoContent.Width - 1240, 5);
+            searchBox.Text = "Axtarış edin";
+            searchBox.ForeColor = Color.Gray;
+
+
+            searchBox.Enter += (s, ev) =>
+            {
+                if (searchBox.Text == "Axtarış edin")
+                {
+                    searchBox.Text = "";
+                    searchBox.ForeColor = Color.Black;
+                }
+            };
+
+            searchBox.Leave += (s, ev) =>
+            {
+                if (string.IsNullOrWhiteSpace(searchBox.Text))
+                {
+                    searchBox.Text = "Axtarış edin";
+                    searchBox.ForeColor = Color.Gray;
+                }
+            };
+
+            scaleInfoContent.Controls.Add(searchBox);
+            searchBox.TextChanged += new EventHandler(SearchBox_TextChanged);
+
+            PictureBox searchIcon = new PictureBox();
+            searchIcon.Image = Image.FromFile("C:\\Users\\Akbar\\Documents\\pictures\\search-icon-2-614x460.png");
+            searchIcon.SizeMode = PictureBoxSizeMode.StretchImage;
+            searchIcon.Size = new Size(30, 30);
+            searchIcon.Location = new Point(searchBox.Location.X + searchBox.Width - 2, searchBox.Location.Y - 8);
+
+            searchIcon.Click += (s, ev) =>
+            {
+                MessageBox.Show("Axtarış etmək üçün simgeyə basıldı!");
+            };
+
+            scaleInfoContent.Controls.Add(searchIcon);
+            topPanel.Controls.Add(btnExport);
+            scaleInfoContent.Controls.Add(btnExport);
+
+            ListView listView = new ListView
+            {
+                Dock = DockStyle.Fill,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                CheckBoxes = true,
+                BorderStyle = BorderStyle.None
+            };
+
+            listView.Columns.Add("Giriş çəkisi", 120);
+            listView.Columns.Add("Çıxış çəkisi", 120);
+            listView.Columns.Add("Ümumi çəki", 150);
+            listView.Columns.Add("Giriş tarixi", 150);
+            listView.Columns.Add("Çıxış tarixi", 150);
+            listView.Columns.Add("Kart", 100);
+            listView.Columns.Add("Grade", 150);
+            listView.Columns.Add("Post", 150);
+            listView.Columns.Add("Maşın nömrəsi", 150);
+            listView.OwnerDraw = true;
+
+            listView.DrawColumnHeader += (s, args) =>
+            {
+                using (Font f = new Font("Segoe UI", 8, FontStyle.Bold))
+                using (StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(243, 244, 246)))
+                {
+                    args.Graphics.FillRectangle(brush, args.Bounds);
+                    args.Graphics.DrawRectangle(Pens.LightGray, args.Bounds);
+                    args.Graphics.DrawString(args.Header.Text, f, Brushes.Black, args.Bounds, sf);
+                }
+                listView.CheckBoxes = true;
+            };
+
+
+            listView.DrawItem += (s, args) => args.DrawDefault = true;
+            listView.DrawSubItem += (s, args) => args.DrawDefault = true;
+
+            scaleInfoContent.Controls.Add(listView);
+
             string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
 
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -671,105 +1060,38 @@ namespace ScaleManagment
             scaleInfoContent.Controls.Add(mainLayout);
         }
 
-        private void button4_Click(object sender, EventArgs e)
+       
+
+     
+        
+       public void btnExport1_Click(object sender, EventArgs e)
         {
-            scaleInfoContent.Controls.Clear();
 
-            TableLayoutPanel mainLayout = new TableLayoutPanel();
-            mainLayout.Dock = DockStyle.Fill;
-            mainLayout.RowCount = 3;
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
-
-            Panel topPanel = new Panel { Dock = DockStyle.Fill };
-
-            TextBox txtSearch = new TextBox
-            {
-                Location = new Point(10, 8),
-                Width = 200
-            };
-
-            Button btnExport = new Button();
-            btnExport.Text = " File export";
-            btnExport.Image = Image.FromFile("C:\\Users\\Akbar\\Documents\\pictures\\images (5).png");
-            Image originalImage = btnExport.Image;
-            Image resizedImage = new Bitmap(originalImage, new Size(originalImage.Width / 18, originalImage.Height / 18));
-            btnExport.Image = resizedImage;
-            btnExport.TextImageRelation = TextImageRelation.ImageBeforeText;
-            btnExport.Location = new Point(1100, 6);
-            btnExport.Width = 150;
-            btnExport.Height = 30;
-            btnExport.FlatStyle = FlatStyle.Flat;
-            btnExport.Font = new Font("Arial", 11);
-            btnExport.FlatAppearance.BorderSize = 0;
-            scaleInfoContent.Controls.Add(btnExport);
-
-            scaleInfoContent.Controls.Clear();
-            TextBox searchBox = new TextBox();
-            searchBox.Size = new Size(130, 20);
-            searchBox.BorderStyle = BorderStyle.None;
-            searchBox.Location = new Point(scaleInfoContent.Width - 1240, 5);
-            searchBox.Text = "Axtarış edin";
-            searchBox.ForeColor = Color.Gray;
+            ListView listView = new ListView();
+            listView.Dock = DockStyle.Fill;
+            listView.View = View.Details;
+            listView.FullRowSelect = true;
+            listView.GridLines = true;
+            listView.CheckBoxes = true;
+            listView.BorderStyle = BorderStyle.None;
 
 
-            searchBox.Enter += (s, ev) =>
-            {
-                if (searchBox.Text == "Axtarış edin")
-                {
-                    searchBox.Text = "";
-                    searchBox.ForeColor = Color.Black;
-                }
-            };
+            listView.Columns.Add("ID", 120);
+            listView.Columns.Add("Kartlar", 140);
+            listView.Columns.Add("Sürücü adı", 150);
+            listView.Columns.Add("Son Sürücü", 150);
+            listView.Columns.Add("Avto nömrə", 150);
+            listView.Columns.Add("Avto model", 150);
+            listView.Columns.Add("Avto Şirkət", 140);
+            listView.Columns.Add("Avto status", 100);
 
-            searchBox.Leave += (s, ev) =>
-            {
-                if (string.IsNullOrWhiteSpace(searchBox.Text))
-                {
-                    searchBox.Text = "Axtarış edin";
-                    searchBox.ForeColor = Color.Gray;
-                }
-            };
+            listView.Columns.Add("Xammal ", 130);
+            listView.Columns.Add("Upd", 130);
 
-            scaleInfoContent.Controls.Add(searchBox);
-            searchBox.TextChanged += new EventHandler(SearchBox_TextChanged);
 
-            PictureBox searchIcon = new PictureBox();
-            searchIcon.Image = Image.FromFile("C:\\Users\\Akbar\\Documents\\pictures\\search-icon-2-614x460.png");
-            searchIcon.SizeMode = PictureBoxSizeMode.StretchImage;
-            searchIcon.Size = new Size(30, 30);
-            searchIcon.Location = new Point(searchBox.Location.X + searchBox.Width - 2, searchBox.Location.Y - 8);
 
-            searchIcon.Click += (s, ev) =>
-            {
-                MessageBox.Show("Axtarış etmək üçün simgeyə basıldı!");
-            };
-
-            scaleInfoContent.Controls.Add(searchIcon);
-            topPanel.Controls.Add(btnExport);
-            scaleInfoContent.Controls.Add(btnExport);
-
-            ListView listView = new ListView
-            {
-                Dock = DockStyle.Fill,
-                View = View.Details,
-                FullRowSelect = true,
-                GridLines = true,
-                CheckBoxes = true,
-                BorderStyle = BorderStyle.None
-            };
-
-            listView.Columns.Add("Giriş çəkisi", 120);
-            listView.Columns.Add("Çıxış çəkisi", 120);
-            listView.Columns.Add("Ümumi çəki", 150);
-            listView.Columns.Add("Giriş tarixi", 150);
-            listView.Columns.Add("Çıxış tarixi", 150);
-            listView.Columns.Add("Kart", 100);
-            listView.Columns.Add("Grade", 150);
-            listView.Columns.Add("Post", 150);
-            listView.Columns.Add("Maşın nömrəsi", 150);
             listView.OwnerDraw = true;
+
 
             listView.DrawColumnHeader += (s, args) =>
             {
@@ -788,6 +1110,7 @@ namespace ScaleManagment
             listView.DrawItem += (s, args) => args.DrawDefault = true;
             listView.DrawSubItem += (s, args) => args.DrawDefault = true;
 
+
             scaleInfoContent.Controls.Add(listView);
 
             string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
@@ -795,124 +1118,71 @@ namespace ScaleManagment
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "select*from dbo.gates";
+                string query = "SELECT * FROM dbo.cards";
 
                 SqlCommand cmd = new SqlCommand(query, conn);
                 SqlDataReader reader = cmd.ExecuteReader();
 
                 while (reader.Read())
                 {
-                    string giris = reader["weight_in"].ToString();
-                    string cixis = reader["weight_out"].ToString();
-                    string umumiceki = reader["weight_total"].ToString();
+                    string id = reader["ID"].ToString();
+                    string card = reader["cards"].ToString();
+                    string driverName = reader["drivername"].ToString();
+                    string driverLast = reader["driverlast"].ToString();
+                    string carNumber = reader["carnumber"].ToString();
+                    string carModel = reader["carmodel"].ToString();
+                    string carCompany = reader["carcompany"].ToString();
+                    string carStatus = reader["carstatus"].ToString();
+                    string desk = reader["desk"].ToString();
+                    string upd = reader["upd"].ToString();
 
-                    DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
-                    DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
 
-                    string kart = reader["card"].ToString();
-                    string grade = reader["sort"].ToString();
-                    string post = reader["post"].ToString();
-                    string masin = reader["carnumber"].ToString();
-
-                    ListViewItem item = new ListViewItem(giris);
-                    item.SubItems.Add(cixis);
-                    item.SubItems.Add(umumiceki);
-                    item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
-                    item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
-                    item.SubItems.Add(kart);
-                    item.SubItems.Add(grade);
-                    item.SubItems.Add(post);
-                    item.SubItems.Add(masin);
+                    ListViewItem item = new ListViewItem(id);
+                    item.SubItems.Add(card);
+                    item.SubItems.Add(driverName);
+                    item.SubItems.Add(driverLast);
+                    item.SubItems.Add(carNumber);
+                    item.SubItems.Add(carModel);
+                    item.SubItems.Add(carCompany);
+                    item.SubItems.Add(carStatus);
+                    item.SubItems.Add(desk);
+                    item.SubItems.Add(upd);
 
                     listView.Items.Add(item);
                 }
-
                 reader.Close();
             }
 
-            Panel bottomPanel = new Panel
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "CSV files (*.csv)|*.csv";
+            saveFileDialog.Title = "CSV faylını saxla";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                Dock = DockStyle.Bottom,
-                Height = 40
-            };
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(saveFileDialog.FileName,false,Encoding.UTF8))
+                {
 
-            Label lblCount = new Label
-            {
-                Text = "Sətir sayı: " + listView.Items.Count,
-                Location = new Point(12, -1),
-                AutoSize = true
-            };
+                    for (int i = 0; i < listView.Columns.Count; i++)
+                    {
+                        sw.Write(listView.Columns[i].Text);
+                        if (i < listView.Columns.Count - 1) sw.Write(",");
+                    }
+                    sw.WriteLine();
 
-            Button btnPrev = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
-            btnPrev.FlatStyle = FlatStyle.Flat;
-            btnPrev.FlatAppearance.BorderSize = 0;
 
-            Button btnPage1 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
-            btnPage1.FlatStyle = FlatStyle.Flat;
-            btnPage1.Click += new EventHandler(button1_Click);
-            btnPage1.FlatAppearance.BorderSize = 0;
-            Button btnPage2 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
-            btnPage2.FlatStyle = FlatStyle.Flat;
-            btnPage2.FlatAppearance.BorderSize = 0;
-            btnPage2.Click += new EventHandler(button2_Click);
-            Button btnPage3 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
-            btnPage3.FlatStyle = FlatStyle.Flat;
-            btnPage3.FlatAppearance.BorderSize = 0;
-            btnPage3.Click += new EventHandler(button3_Click);
-            Button btnPage4 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
-            btnPage4.FlatStyle = FlatStyle.Flat;
-            btnPage4.FlatAppearance.BorderSize = 0;
-            btnPage4.Click += new EventHandler(button4_Click);
-            Button btnPage5 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
-            btnPage5.FlatStyle = FlatStyle.Flat;
-            btnPage5.FlatAppearance.BorderSize = 0;
-            btnPage5.Click += new EventHandler(button5_Click);
-            Button btnPage6 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
-            btnPage6.FlatStyle = FlatStyle.Flat;
-            btnPage6.Click += new EventHandler(button6_Click);
-            btnPage6.FlatAppearance.BorderSize = 0;
-            Button btnPage7 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 };
-            btnPage7.FlatStyle = FlatStyle.Flat;
-            btnPage7.FlatAppearance.BorderSize = 0;
-            btnPage7.Click += new EventHandler(button7_Click);
-            Button btnNext = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
-            btnNext.FlatStyle = FlatStyle.Flat;
-            btnNext.FlatAppearance.BorderSize = 0;
+                    foreach (ListViewItem item in listView.Items)
+                    {
+                        for (int i = 0; i < item.SubItems.Count; i++)
+                        {
+                            sw.Write(item.SubItems[i].Text);
+                            if (i < item.SubItems.Count - 1) sw.Write(",");
+                        }
+                        sw.WriteLine();
+                    }
+                }
 
-            Label lblSehife = new Label
-            {
-                Text = "7/səhifə ",
-                Location = new Point(1000, -1),
-                AutoSize = true
-            };
-
-            Label lblSehifeyekecid = new Label
-            {
-                Text = "Səhifəyə keç: ",
-                Location = new Point(1100, -1),
-                AutoSize = true
-            };
-
-            bottomPanel.Controls.Add(lblCount);
-            bottomPanel.Controls.Add(btnPrev);
-            bottomPanel.Controls.Add(btnPage1);
-            bottomPanel.Controls.Add(btnPage2);
-            bottomPanel.Controls.Add(btnPage3);
-            bottomPanel.Controls.Add(btnPage4);
-            bottomPanel.Controls.Add(btnPage5);
-            bottomPanel.Controls.Add(btnPage6);
-            bottomPanel.Controls.Add(btnPage7);
-            bottomPanel.Controls.Add(btnNext);
-            bottomPanel.Controls.Add(lblSehife);
-            bottomPanel.Controls.Add(lblSehifeyekecid);
-
-            this.Controls.Add(bottomPanel);
-
-            mainLayout.Controls.Add(topPanel, 0, 0);
-            mainLayout.Controls.Add(listView, 0, 1);
-            mainLayout.Controls.Add(bottomPanel, 0, 2);
-
-            scaleInfoContent.Controls.Add(mainLayout);
+                MessageBox.Show("Məlumat uğurla CSV-ə ixrac edildi!");
+            }
         }
 
         private void button7_Click(object sender, EventArgs e)
@@ -955,22 +1225,23 @@ namespace ScaleManagment
             scaleInfoContent.Controls.Add(lblendDate);
 
 
-            Button btnExport = new Button();
-            btnExport.Text = " Export";
-            btnExport.Image = Image.FromFile("C:\\Users\\Akbar\\Documents\\pictures\\images (5).png");
-            Image originalImage = btnExport.Image;
+            Button btnExport1 = new Button();
+            btnExport1.Text = " Export";
+            btnExport1.Image = Image.FromFile("C:\\Users\\Akbar\\Documents\\pictures\\images (5).png");
+            Image originalImage = btnExport1.Image;
             Image resizedImage = new Bitmap(originalImage, new Size(originalImage.Width / 18, originalImage.Height / 18));  // Burada şəkili yarıya endiririk
-            btnExport.Image = resizedImage;
-            btnExport.TextImageRelation = TextImageRelation.ImageBeforeText;
-            btnExport.Location = new Point(850, 0);
-            btnExport.Width = 100;
-            btnExport.Height = 30;
+            btnExport1.Image = resizedImage;
+            btnExport1.TextImageRelation = TextImageRelation.ImageBeforeText;
+            btnExport1.Location = new Point(850, 0);
+            btnExport1.Width = 100;
+            btnExport1.Height = 30;
+            btnExport1.Click += new EventHandler(btnExport1_Click);
 
-            btnExport.FlatStyle = FlatStyle.Flat;
+            btnExport1.FlatStyle = FlatStyle.Flat;
 
-            btnExport.Font = new Font("Arial", 11);
-            btnExport.FlatAppearance.BorderSize = 0;
-            scaleInfoContent.Controls.Add(btnExport);
+            btnExport1.Font = new Font("Arial", 10);
+            btnExport1.FlatAppearance.BorderSize = 0;
+            scaleInfoContent.Controls.Add(btnExport1);
 
             Button btnDelete2 = new Button()
             {
@@ -1013,7 +1284,7 @@ namespace ScaleManagment
 
             btnNew4.Click += new EventHandler(btnNew4_Click);
 
-            topPanel.Controls.Add(btnExport);
+            topPanel.Controls.Add(btnExport1);
             topPanel.Controls.Add(btnDelete2);
             topPanel.Controls.Add(btnEdit);
             topPanel.Controls.Add(btnNew4);
@@ -1181,11 +1452,51 @@ namespace ScaleManagment
             scaleInfoContent.Controls.Add(statsPanel);
             scaleInfoContent.Controls.Add(topPanel);
         }
-
         private void btnDelete2_Click(object sender, EventArgs e)
         {
-            ReysiSilmek reysiSilmek = new ReysiSilmek();
-            reysiSilmek.ShowDialog();
+              Button clickedButton = sender as Button;
+              ListViewItem item = clickedButton.Tag as ListViewItem;
+ 
+   
+              DialogResult result = MessageBox.Show("Are you sure you want to delete this item?", "Confirm Deletion", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
+             {
+        
+               listView.Items.Remove(item);
+        
+       
+               DeleteFromDatabase(item.SubItems[0].Text); 
+        
+               MessageBox.Show("Item deleted.");
+             }
+             else
+             {
+               MessageBox.Show("Deletion cancelled.");
+             }
+
+        }
+
+        private void DeleteFromDatabase(string id)
+        {
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123++;Encrypt=True;TrustServerCertificate=True;";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                foreach (ListViewItem item in listView.CheckedItems)
+                {
+                    string userId = item.Text;
+                    string query = "DELETE FROM  WHERE Id = @id";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@userId", userId);
+                        cmd.ExecuteNonQuery();
+                    }
+                    listView.Items.Remove(item);
+                }
+               
+            }
         }
 
         private void ListView_DoubleClick(object sender, EventArgs e)
@@ -1290,14 +1601,15 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(searchIcon);
 
-            Button btnDelete = new Button();
-            btnDelete.Text = "Kartı sil";
-            btnDelete.Size = new Size(90, 32);
-            btnDelete.Location = new Point(1060, -1);
-            btnDelete.FlatStyle = FlatStyle.Flat;
-            btnDelete.FlatAppearance.BorderSize = 0;
-            btnDelete.BackColor = Color.White;
-            scaleInfoContent.Controls.Add(btnDelete);
+            Button btnDeleteKart = new Button();
+            btnDeleteKart.Text = "Kartı sil";
+            btnDeleteKart.Size = new Size(90, 32);
+            btnDeleteKart.Location = new Point(1060, -1);
+            btnDeleteKart.FlatStyle = FlatStyle.Flat;
+            btnDeleteKart.FlatAppearance.BorderSize = 0;
+            btnDeleteKart.BackColor = Color.White;
+            btnDeleteKart.Click += new EventHandler(btnDeleteKart_Click);
+            scaleInfoContent.Controls.Add(btnDeleteKart);
 
             Button btnNewMenu = new Button();
             btnNewMenu.Text = "+ Yeni kart";
@@ -1478,6 +1790,125 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(mainLayout);
 
+        }
+
+        private void btnDeleteKart_Click(object sender, EventArgs e)
+        {
+
+
+
+
+            ListView listView = new ListView
+            {
+                Dock = DockStyle.Fill,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                CheckBoxes = true,
+                BorderStyle = BorderStyle.None
+            };
+
+            // Sütunlar
+            listView.Columns.Add("Kart nömrəsi", 200);
+            listView.Columns.Add("Sürücü", 200);
+            listView.Columns.Add("Avtomobil nömrəsi", 200);
+            listView.Columns.Add("Avtomobil markası", 200);
+            listView.Columns.Add("Avtomobil statusu", 200);
+
+            listView.Columns.Add("Grade", 200);
+
+
+
+            listView.OwnerDraw = true;
+
+
+            listView.DrawColumnHeader += (s, args) =>
+            {
+                using (Font f = new Font("Segoe UI", 8, FontStyle.Bold))
+                using (StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(243, 244, 246)))
+                {
+                    args.Graphics.FillRectangle(brush, args.Bounds);
+                    args.Graphics.DrawRectangle(Pens.LightGray, args.Bounds);
+                    args.Graphics.DrawString(args.Header.Text, f, Brushes.Black, args.Bounds, sf);
+                }
+                listView.CheckBoxes = true;
+            };
+
+
+            listView.DrawItem += (s, args) => args.DrawDefault = true;
+            listView.DrawSubItem += (s, args) => args.DrawDefault = true;
+
+            scaleInfoContent.Controls.Add(listView);
+
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select*from dbo.gates";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string giris = reader["weight_in"].ToString();
+                    string cixis = reader["weight_out"].ToString();
+                    string umumiceki = reader["weight_total"].ToString();
+
+                    DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
+                    DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
+
+                    string kart = reader["card"].ToString();
+                    string grade = reader["sort"].ToString();
+                    string post = reader["post"].ToString();
+                    string masin = reader["carnumber"].ToString();
+
+                    ListViewItem item = new ListViewItem(giris);
+                    item.SubItems.Add(cixis);
+                    item.SubItems.Add(umumiceki);
+                    item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
+                    item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
+                    item.SubItems.Add(kart);
+                    item.SubItems.Add(grade);
+                    item.SubItems.Add(post);
+                    item.SubItems.Add(masin);
+
+                    listView.Items.Add(item);
+                }
+
+                reader.Close();
+
+
+
+
+                string connectionString1 = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;TrustServerCertificate=True";
+
+                using (SqlConnection conn1 = new SqlConnection(connectionString1))
+                {
+                    conn1.Open();
+
+
+                    foreach (ListViewItem item in listView.CheckedItems)
+                    {
+
+                        string userName = item.Text;
+
+
+                        string query1 = "DELETE FROM gates WHERE [weight_in] = @userName";
+
+                        using (SqlCommand cmd1 = new SqlCommand(query1, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@userName", userName);
+                            cmd.ExecuteNonQuery();
+                        }
+
+
+                        listView.Items.Remove(item);
+                    }
+                }
+            }
         }
 
         private void btnNewMenu_Click(object sender, EventArgs e)

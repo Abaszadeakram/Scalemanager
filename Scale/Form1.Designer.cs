@@ -110,7 +110,7 @@
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(98, 23);
             this.button7.TabIndex = 6;
-            this.button7.Text = "Excell export";
+            this.button7.Text = "Excel export";
             this.button7.UseVisualStyleBackColor = true;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
