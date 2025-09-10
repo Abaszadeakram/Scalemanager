@@ -30,6 +30,28 @@ namespace ScaleManagment
         public  void button1_Click(object sender, EventArgs e)
         {
 
+            button1.BackColor = Color.White;
+            button1.ForeColor = Color.Orange;
+
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.Black;
+            button2.ForeColor = Color.White;
+
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+
+            button6.BackColor = Color.Black;
+            button6.ForeColor = Color.White;
+
+            button7.BackColor = Color.Black;
+            button7.ForeColor = Color.White;
+
             scaleInfoContent.Controls.Clear();
 
             TableLayoutPanel mainLayout = new TableLayoutPanel();
@@ -125,7 +147,7 @@ namespace ScaleManagment
                 using (Font f = new Font("Segoe UI", 8, FontStyle.Bold))
                 using (StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                 using (SolidBrush brush = new SolidBrush(Color.FromArgb(243, 244, 246)))
-                {
+                { 
                     args.Graphics.FillRectangle(brush, args.Bounds);
                     args.Graphics.DrawRectangle(Pens.LightGray, args.Bounds);
                     args.Graphics.DrawString(args.Header.Text, f, Brushes.Black, args.Bounds, sf);
@@ -260,7 +282,7 @@ namespace ScaleManagment
             mainLayout.Controls.Add(bottomPanel, 0, 2);
 
             scaleInfoContent.Controls.Add(mainLayout);
-
+          
         }
 
         private void lblSehifeyekecidPage_TextChanged(object sender, EventArgs e)
@@ -297,44 +319,46 @@ namespace ScaleManagment
 
         private void btnPage7_Click(object sender, EventArgs e)
         {
-            currentPage = 6;
+            currentPage = 7;
             LoadData(currentPage, pageSize);
         }
 
         private void btnPage6_Click(object sender, EventArgs e)
         {
-            currentPage = 5;
+            currentPage = 6;
             LoadData(currentPage, pageSize);
         }
 
         private void btnPage5_Click(object sender, EventArgs e)
         {
-            currentPage = 4;  
+            currentPage = 5;  
             LoadData(currentPage, pageSize);
         }
 
         private void btnPage4_Click(object sender, EventArgs e)
         {
-            currentPage = 3;  
+            currentPage = 4;  
             LoadData(currentPage, pageSize);
         }
 
         private void btnPage3_Click(object sender, EventArgs e)
         {
-            currentPage = 2;  
+            currentPage = 3;  
             LoadData(currentPage, pageSize);
         }
 
         private void btnPage2_Click(object sender, EventArgs e)
         {
-            currentPage = 1;  
+            currentPage = 2;  
             LoadData(currentPage, pageSize);
         }
 
         private void btnPage1_Click(object sender, EventArgs e)
         {
-            currentPage = 0;  
+            
+            currentPage = 1;  
             LoadData(currentPage, pageSize);
+            
         }
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
@@ -466,6 +490,27 @@ namespace ScaleManagment
         private void button2_Click(object sender, EventArgs e)
         {
 
+            button1.BackColor = Color.Black;
+            button1.ForeColor = Color.White;
+
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.White;
+            button2.ForeColor = Color.Orange;
+
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+
+            button6.BackColor = Color.Black;
+            button6.ForeColor = Color.White;
+
+            button7.BackColor = Color.Black;
+            button7.ForeColor = Color.White;
             scaleInfoContent.Controls.Clear();
 
             TableLayoutPanel tbl = new TableLayoutPanel();
@@ -576,6 +621,28 @@ namespace ScaleManagment
         }
         private void button3_Click(object sender, EventArgs e)
         {
+
+            button1.BackColor = Color.Black;
+            button1.ForeColor = Color.White;
+
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.Black;
+            button2.ForeColor = Color.White;
+
+            button3.BackColor = Color.White;
+            button3.ForeColor = Color.Orange;
+
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+
+            button6.BackColor = Color.Black;
+            button6.ForeColor = Color.White;
+
+            button7.BackColor = Color.Black;
+            button7.ForeColor = Color.White;
             scaleInfoContent.Controls.Clear();
 
             TableLayoutPanel mainLayout = new TableLayoutPanel();
@@ -823,6 +890,7 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(mainLayout);
             btnExport.Click += new EventHandler(btnExport_Click);
+
         }
 
         private void btnExport_Click(object sender, EventArgs e)
@@ -941,6 +1009,28 @@ namespace ScaleManagment
 
         private void button4_Click(object sender, EventArgs e)
         {
+            button1.BackColor = Color.Black;
+            button1.ForeColor = Color.White;
+
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.Black;
+            button2.ForeColor = Color.White;
+
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+
+            button4.BackColor = Color.White;
+            button4.ForeColor = Color.Orange;
+
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+
+            button6.BackColor = Color.Black;
+            button6.ForeColor = Color.White;
+
+            button7.BackColor = Color.Black;
+            button7.ForeColor = Color.White;
+
             scaleInfoContent.Controls.Clear();
 
             TableLayoutPanel mainLayout = new TableLayoutPanel();
@@ -1312,7 +1402,27 @@ namespace ScaleManagment
 
         private void button7_Click(object sender, EventArgs e)
         {
+            button1.BackColor = Color.Black;
+            button1.ForeColor = Color.White;
 
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.Black;
+            button2.ForeColor = Color.White;
+
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+
+            button6.BackColor = Color.Black;
+            button6.ForeColor = Color.White;
+
+            button7.BackColor = Color.White;
+            button7.ForeColor = Color.Orange;
 
             scaleInfoContent.Controls.Clear();
             scaleInfoContent.AutoScroll = true;
@@ -1664,6 +1774,29 @@ namespace ScaleManagment
 
         private void button5_Click(object sender, EventArgs e)
         {
+            button1.BackColor = Color.Black;
+            button1.ForeColor = Color.White;
+
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.Black;
+            button2.ForeColor = Color.White;
+
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+
+            button5.BackColor = Color.White;
+            button5.ForeColor = Color.Orange;
+
+            button6.BackColor = Color.Black;
+            button6.ForeColor = Color.White;
+
+            button7.BackColor = Color.Black;
+            button7.ForeColor = Color.White;
+
+
             scaleInfoContent.Controls.Clear();
 
             TableLayoutPanel mainLayout = new TableLayoutPanel();
@@ -2049,6 +2182,28 @@ namespace ScaleManagment
 
         private void button6_Click(object sender, EventArgs e)
         {
+            button1.BackColor = Color.Black;
+            button1.ForeColor = Color.White;
+
+            // Digər düymələrin stilini sıfırlayırıq
+            button2.BackColor = Color.Black;
+            button2.ForeColor = Color.White;
+
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+
+            button6.BackColor = Color.White;
+            button6.ForeColor = Color.Orange;
+
+            button7.BackColor = Color.Black;
+            button7.ForeColor = Color.White;
+
             scaleInfoContent.Controls.Clear();
             DateTimePicker dtpStartDate = new DateTimePicker();
             dtpStartDate.Format = DateTimePickerFormat.Short;
