@@ -14,15 +14,20 @@ namespace ScaleManagment
         private object label1;
         public ListView listView;
         private TextBox txtSearch;
+        int currentPage = 0; // Səhifə nömrəsini sıfırdan başlayırıq
+        int pageSize = 40;
 
         public object FlatAppearance { get; private set; }
+        public TextBox _lblSehifeyekecidPage { get; set; }
 
         public Form1()
         {
             InitializeComponent();
+           
+            
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        public  void button1_Click(object sender, EventArgs e)
         {
 
             scaleInfoContent.Controls.Clear();
@@ -134,29 +139,29 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(listView);
 
-            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+            //string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-                string query = "select*from dbo.tblDatas";
+            //using (SqlConnection conn = new SqlConnection(connectionString))
+            //{
+            //    conn.Open();
+            //    string query = "select*from dbo.tblDatas";
 
-                SqlCommand cmd = new SqlCommand(query, conn);
-                SqlDataReader reader = cmd.ExecuteReader();
+            //    SqlCommand cmd = new SqlCommand(query, conn);
+            //    SqlDataReader reader = cmd.ExecuteReader();
 
-                while (reader.Read())
-                {
-                    string name = reader["Istifadeci adi"].ToString();
-                    DateTime date = Convert.ToDateTime(reader["Yaradilma tarixi"]);
+            //    while (reader.Read())
+            //    {
+            //        string name = reader["Istifadeci adi"].ToString();
+            //        DateTime date = Convert.ToDateTime(reader["Yaradilma tarixi"]);
 
-                    ListViewItem item = new ListViewItem(name);
-                    item.SubItems.Add(date.ToString("dd.MM.yyyy HH:mm"));
+            //        ListViewItem item = new ListViewItem(name);
+            //        item.SubItems.Add(date.ToString("dd.MM.yyyy HH:mm"));
 
-                    listView.Items.Add(item);
-                }
+            //        listView.Items.Add(item);
+            //    }
 
-                reader.Close();
-            }
+            //    reader.Close();
+            //}
 
             Panel bottomPanel = new Panel
             {
@@ -177,39 +182,40 @@ namespace ScaleManagment
             Button btnPrev = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
             btnPrev.FlatStyle = FlatStyle.Flat;
             btnPrev.FlatAppearance.BorderSize = 0;
-
+            btnPrev.Click += new EventHandler(btnPrev_Click);
             Button btnPage1 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
             btnPage1.FlatStyle = FlatStyle.Flat;
-            btnPage1.Click += new EventHandler(button1_Click);
+            btnPage1.Click += new EventHandler(btnPage1_Click);
             btnPage1.FlatAppearance.BorderSize = 0;
             Button btnPage2 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
             btnPage2.FlatStyle = FlatStyle.Flat;
             btnPage2.FlatAppearance.BorderSize = 0;
-            btnPage2.Click += new EventHandler(button2_Click);
+            btnPage2.Click += new EventHandler(btnPage2_Click);
             Button btnPage3 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
             btnPage3.FlatStyle = FlatStyle.Flat;
             btnPage3.FlatAppearance.BorderSize = 0;
-            btnPage3.Click += new EventHandler(button3_Click);
+            btnPage3.Click += new EventHandler(btnPage3_Click);
             Button btnPage4 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
             btnPage4.FlatStyle = FlatStyle.Flat;
             btnPage4.FlatAppearance.BorderSize = 0;
-            btnPage4.Click += new EventHandler(button4_Click);
+            btnPage4.Click += new EventHandler(btnPage4_Click);
             Button btnPage5 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
             btnPage5.FlatStyle = FlatStyle.Flat;
             btnPage5.FlatAppearance.BorderSize = 0;
-            btnPage5.Click += new EventHandler(button5_Click);
+            btnPage5.Click += new EventHandler(btnPage5_Click);
             Button btnPage6 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
             btnPage6.FlatStyle = FlatStyle.Flat;
-            btnPage6.Click += new EventHandler(button6_Click);
+            btnPage6.Click += new EventHandler(btnPage6_Click);
             btnPage6.FlatAppearance.BorderSize = 0;
             Button btnPage7 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 };
             btnPage7.FlatStyle = FlatStyle.Flat;
             btnPage7.FlatAppearance.BorderSize = 0;
-            btnPage7.Click += new EventHandler(button7_Click);
+            btnPage7.Click += new EventHandler(btnPage7_Click);
             Button btnNext = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
             btnNext.FlatStyle = FlatStyle.Flat;
             btnNext.FlatAppearance.BorderSize = 0;
-
+            btnNext.Click += new EventHandler(btnNext_click);
+            lblCount.Text = pageSize.ToString();
 
             Label lblSehife = new Label
             {
@@ -225,6 +231,14 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
+            TextBox lblSehifeyekecidPage = new TextBox
+            {
+                Text = "0",
+                Location = new Point(1190, -1),
+                AutoSize = true
+            };
+            lblSehifeyekecidPage.TextChanged += new EventHandler(lblSehifeyekecidPage_TextChanged);
+
             bottomPanel.Controls.Add(lblCount);
             bottomPanel.Controls.Add(btnPrev);
             bottomPanel.Controls.Add(btnPage1);
@@ -237,6 +251,7 @@ namespace ScaleManagment
             bottomPanel.Controls.Add(btnNext);
             bottomPanel.Controls.Add(lblSehife);
             bottomPanel.Controls.Add(lblSehifeyekecid);
+            bottomPanel.Controls.Add(lblSehifeyekecidPage);
 
             this.Controls.Add(bottomPanel);
 
@@ -247,6 +262,81 @@ namespace ScaleManagment
             scaleInfoContent.Controls.Add(mainLayout);
 
         }
+
+        private void lblSehifeyekecidPage_TextChanged(object sender, EventArgs e)
+        {
+            //if (int.TryParse(lblSehifeyekecidPage.Text, out int pageNumber) && pageNumber > 0)
+            //{
+
+            //    currentPage = pageNumber - 1;
+
+
+            //    LoadData(currentPage, pageSize);
+            //}
+            //else
+            //{
+
+            //    MessageBox.Show("Zəhmət olmasa düzgün səhifə nömrəsi daxil edin.");
+            //}
+        }
+
+        private void btnNext_click(object sender, EventArgs e)
+        {
+            currentPage++; 
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            if (currentPage > 0)
+            {
+                currentPage--; 
+                LoadData(currentPage, pageSize); 
+            }
+        }
+
+        private void btnPage7_Click(object sender, EventArgs e)
+        {
+            currentPage = 6;
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPage6_Click(object sender, EventArgs e)
+        {
+            currentPage = 5;
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPage5_Click(object sender, EventArgs e)
+        {
+            currentPage = 4;  
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPage4_Click(object sender, EventArgs e)
+        {
+            currentPage = 3;  
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPage3_Click(object sender, EventArgs e)
+        {
+            currentPage = 2;  
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPage2_Click(object sender, EventArgs e)
+        {
+            currentPage = 1;  
+            LoadData(currentPage, pageSize);
+        }
+
+        private void btnPage1_Click(object sender, EventArgs e)
+        {
+            currentPage = 0;  
+            LoadData(currentPage, pageSize);
+        }
+
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
             TextBox textBox = sender as TextBox;
@@ -336,6 +426,41 @@ namespace ScaleManagment
             item.SubItems.Add(post);
 
             listView.Items.Add(item);
+        }
+
+        private void LoadData(int pageIndex, int pageSize)
+        {
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True";
+            string query = @"
+        SELECT * 
+        FROM dbo.tblDatas
+        ORDER BY [Yaradilma tarixi] 
+        OFFSET @PageIndex * @PageSize ROWS 
+        FETCH NEXT @PageSize ROWS ONLY";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@PageIndex", pageIndex);  // Cari səhifə nömrəsi
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);  // Hər səhifədə neçə məlumat
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    listView.Items.Clear(); // Əvvəlki məlumatları təmizləyirik
+
+                    while (reader.Read())
+                    {
+                        string name = reader["Istifadeci adi"].ToString();
+                        DateTime date = Convert.ToDateTime(reader["Yaradilma tarixi"]);
+
+                        ListViewItem item = new ListViewItem(name);
+                        item.SubItems.Add(date.ToString("dd.MM.yyyy HH:mm"));
+
+                        listView.Items.Add(item);
+                    }
+                }
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
