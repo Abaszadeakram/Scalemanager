@@ -18,8 +18,9 @@ namespace ScaleManagment
         public ListView listView;
         private TextBox txtSearch;
         int currentPage = 0; // Səhifə nömrəsini sıfırdan başlayırıq
-        int pageSize = 40;
-        private List<Button> pageButtons;
+        int pageSize = 10;
+        int totalCount = 0;
+        private List<Button> pageButtons = new List<Button>();
 
         public object FlatAppearance { get; private set; }
         public TextBox _lblSehifeyekecidPage { get; set; }
@@ -176,29 +177,27 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(listView);
 
-            //string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=Qeydiyyatdb;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
 
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-            //    string query = "select*from dbo.tblDatas";
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select COUNT(*) count from tblDatas";
 
-            //    SqlCommand cmd = new SqlCommand(query, conn);
-            //    SqlDataReader reader = cmd.ExecuteReader();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
 
-            //    while (reader.Read())
-            //    {
-            //        string name = reader["Istifadeci adi"].ToString();
-            //        DateTime date = Convert.ToDateTime(reader["Yaradilma tarixi"]);
+                while (reader.Read())
+                {
+                    totalCount =int.Parse( reader["count"].ToString());
+                    
 
-            //        ListViewItem item = new ListViewItem(name);
-            //        item.SubItems.Add(date.ToString("dd.MM.yyyy HH:mm"));
+                }
 
-            //        listView.Items.Add(item);
-            //    }
+                reader.Close();
+            }
 
-            //    reader.Close();
-            //}
+            LoadData(1, pageSize);
 
             Panel bottomPanel = new Panel
             {
@@ -215,47 +214,27 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
+            int PageCount = (int)Math.Round((double)totalCount / pageSize);
 
-
-            Button btnPrev = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
-            btnPrev.Click += new EventHandler(btnPrev_Click);
-
-            Button btnPage1 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
-            btnPage1.Click += new EventHandler(btnPage1_Click);
-
-            Button btnPage2 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
-            btnPage2.Click += new EventHandler(btnPage2_Click);
-
-            Button btnPage3 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
-            btnPage3.Click += new EventHandler(btnPage3_Click);
-
-            Button btnPage4 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
-            btnPage4.Click += new EventHandler(btnPage4_Click);
-
-            Button btnPage5 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
-            btnPage5.Click += new EventHandler(btnPage5_Click);
-
-            Button btnPage6 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
-            btnPage6.Click += new EventHandler(btnPage6_Click);
-
-            Button btnPage7 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 }; ;
-            btnPage7.Click += new EventHandler(btnPage7_Click);
-
-            Button btnNext = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
-            btnNext.Click += new EventHandler(btnNext_click);
-
-
-            // Общие свойства
-            foreach (Button btn in new[] { btnPrev, btnPage1, btnPage2, btnPage3, btnPage4, btnPage5, btnPage6, btnPage7, btnNext })
+            for (int i = 1; i < PageCount; i++)
             {
-                btn.FlatStyle = FlatStyle.Flat;
-                btn.FlatAppearance.BorderSize = 0;
-                bottomPanel.Controls.Add(btn);
+                Button btnPage = new Button { Text = i.ToString(), Location = new Point(450 + i*35, -1), Width = 20 };
+                btnPage.Click += new EventHandler(btnPage1_Click);
+
+                btnPage.FlatStyle = FlatStyle.Flat;
+                btnPage.FlatAppearance.BorderSize = 0;
+                bottomPanel.Controls.Add(btnPage);
+                pageButtons.Add(btnPage);
+                
             }
 
+            //Button btnPrev = new Button { Text = ">", Location = new Point( , -1), Width = 20 };
+            //btnPrev.Click += new EventHandler(btnPrev_Click);
+            //bottomPanel.Controls.Add(btnPrev);
 
-            pageButtons = new List<Button> { btnPrev, btnPage1, btnPage2, btnPage3, btnPage4, btnPage5, btnPage6, btnPage7, btnNext };
-            UpdatePageButtonStyles(btnPage1);
+            Button btnNext = new Button { Text = "<", Location = new Point(700, -1), Width = 20 };
+            btnNext.Click += new EventHandler(btnNext_Click);
+            bottomPanel.Controls.Add(btnNext);
 
 
             lblCount.Text = pageSize.ToString();
@@ -298,6 +277,16 @@ namespace ScaleManagment
 
         }
 
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            LoadData(currentPage + 1, pageSize);
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            LoadData(currentPage - 1, pageSize);
+        }
+
         private void lblSehifeyekecidPage_TextChanged(object sender, EventArgs e)
         {
             //if (int.TryParse(lblSehifeyekecidPage.Text, out int pageNumber) && pageNumber > 0)
@@ -315,75 +304,21 @@ namespace ScaleManagment
             //}
         }
 
-        private void btnNext_click(object sender, EventArgs e)
-        {
-            if (currentPage < pageButtons.Count)
-            {
-                currentPage++;
-            }
-
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPrev_Click(object sender, EventArgs e)
-        {
-            if (currentPage > 1)
-            {
-                currentPage--;
-            }
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage7_Click(object sender, EventArgs e)
-        {
-            currentPage = 7;
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage6_Click(object sender, EventArgs e)
-        {
-            currentPage = 6;
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage5_Click(object sender, EventArgs e)
-        {
-            currentPage = 5;
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage4_Click(object sender, EventArgs e)
-        {
-            currentPage = 4;
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage3_Click(object sender, EventArgs e)
-        {
-            currentPage = 3;
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage2_Click(object sender, EventArgs e)
-        {
-            currentPage = 2;
-            LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
+       
         private void btnPage1_Click(object sender, EventArgs e)
         {
-            currentPage = 1;
+            Button btn = sender as Button;
+            if (btn != null)
+            {
+                string Text = btn.Text; 
+                //MessageBox.Show("Button adı: " + Text);
+            }
+
+            currentPage = int.Parse(Text);
             LoadData(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
+            UpdatePageButtonStyles(btn);
         }
+        
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
