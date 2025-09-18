@@ -5,8 +5,12 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Globalization;
+
+using System.IO.Ports;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using TereziEla;
 
@@ -14,22 +18,228 @@ namespace ScaleManagment
 {
     public partial class Form1 : Form
     {
-        private object label1;
+
+        private IntPtr _handle = IntPtr.Zero;
+
+        private bool _running = false;
+
+       
+
+        private Label textBoxdata;
+        private TextBox textBox1;
+        public string terezidatas;
         public ListView listView;
+        SerialPort serialPort;
         private TextBox txtSearch;
-        int currentPage = 0; // Səhifə nömrəsini sıfırdan başlayırıq
+        public string data;
+        int currentPage = 0; 
         int pageSize = 10;
         int totalCount = 0;
+        int totalCount1 = 0;
+        int totalCount2 = 0;
+        int totalCount3 = 0;
+      
+     
         private List<Button> pageButtons = new List<Button>();
+        private List<Button> pageButtons1 = new List<Button>();
+        private List<Button> pageButtons2 = new List<Button>();
+        private List<Button> pageButtons3 = new List<Button>();
+        private Label lblRfid;
+        private Label lblOxuyucuyabagli;
+        private TextBox textBoxId;
+        private TextBox textBoxCarNumber;
+        private TextBox textBoxCarModel;
+        private TextBox textBoxCarcompany;
+        private TextBox textBoxSurucuAd;
+        private TextBox textBoxYuk;
+        private TextBox textBoxTarix;
 
         public object FlatAppearance { get; private set; }
-        public TextBox _lblSehifeyekecidPage { get; set; }
+
+
+        public TextBox lblSehifeyekecidPage { get; set; }
+
+       
+        public TextBox lblSehifeyekecidPage1 { get; set; }
+
+        public TextBox lblSehifeyekecidPage2 { get; set; }
+
+        public TextBox lblSehifeyekecidPage3 { get; set; }
+        public TextBox TamData { get; }
+
+
+        [DllImport("rfidreader.dll")]
+        public static extern IntPtr Connect(string ip);
+
+        [DllImport("rfidreader.dll")]
+        public static extern int getCard(IntPtr handle, out int cardNo);
+
+        [DllImport("rfidreader.dll")]
+        public static extern void Disconnect(IntPtr handle);
+
 
         public Form1()
         {
             InitializeComponent();
+
+            serialPort = new SerialPort("COM4", 19200, Parity.None, 8, StopBits.One)
+            {
+                Handshake = Handshake.None,
+                DtrEnable = true,
+
+                RtsEnable = true,
+                Encoding = Encoding.UTF8,
+                NewLine = "\r",
+                Parity = Parity.None
+            };
+
+            serialPort.Open();
+
+
+
+
+            serialPort.DataReceived += SerialPort_DataReceived;
+
+
+
+            this.lblSehifeyekecidPage = new TextBox
+            {
+                Text = "0",
+                Location = new Point(1190, -1),  
+                AutoSize = true
+            };
+
+            this.lblSehifeyekecidPage1 = new TextBox
+            {
+                Text = "0",
+                Location = new Point(1190, -1),
+                AutoSize = true
+            };
+
+            this.lblSehifeyekecidPage2 = new TextBox
+            {
+                Text = "0",
+                Location = new Point(1190, -1),
+                AutoSize = true
+            };
+
+            this.lblSehifeyekecidPage3 = new TextBox
+            {
+                Text = "0",
+                Location = new Point(1190, -1),
+                AutoSize = true
+            };
+
+
+
+
+        
+
+            this.textBox1 = new TextBox();
+            textBox1.Text = "0";   
+           
+            textBox1.Dock = DockStyle.Bottom;
+            textBox1.BorderStyle = BorderStyle.None;
+
+
+
+
+
+            this.lblSehifeyekecidPage.TextChanged += lblSehifeyekecidPage_TextChanged;
+            this.lblSehifeyekecidPage1.TextChanged += lblSehifeyekecidPage1_TextChanged;
+            this.lblSehifeyekecidPage2.TextChanged += lblSehifeyekecidPage2_TextChanged;
+            this.lblSehifeyekecidPage3.TextChanged += lblSehifeyekecidPage3_TextChanged;
+
+            this. lblRfid = new Label
+            {
+                Text = "RFID status: ",
+                ForeColor = Color.Black,
+             
+                AutoSize = true,
+                Location = new Point(12, 12)
+            };
+
+            this. lblOxuyucuyabagli = new Label
+            {
+                Text = " ● Oxuyucuya bağlı",
+                ForeColor = Color.Green,
+              
+                AutoSize = true,
+                Location = new Point(lblRfid.Right + 3, lblRfid.Top)
+            };
+
+            this.textBoxId = new TextBox();
+            textBoxId.Text = "553659547";
+
+            textBoxId.Dock = DockStyle.Bottom;
+            textBoxId.BorderStyle = BorderStyle.None;
+
+
+
+            this.textBoxCarNumber = new TextBox();
+            textBoxCarNumber.Text = "77JB459";
+
+            textBoxCarNumber.Dock = DockStyle.Bottom;
+            textBoxCarNumber.BorderStyle = BorderStyle.None;
+
+            this.textBoxCarModel = new TextBox();
+            textBoxCarModel.Text = "BMW";
+            
+            textBoxCarModel.Dock = DockStyle.Bottom;
+            textBoxCarModel.BorderStyle = BorderStyle.None;
+
+
+
+            this.textBoxCarcompany = new TextBox();
+            textBoxCarcompany.Text = "AMG";
+          
+            textBoxCarcompany.Dock = DockStyle.Bottom;
+            textBoxCarcompany.BorderStyle = BorderStyle.None;
+
+
+            this.textBoxSurucuAd = new TextBox();
+            textBoxSurucuAd.Text = "Mərəh Mərəh";
+           
+            textBoxSurucuAd.Dock = DockStyle.Bottom;
+            textBoxSurucuAd.BorderStyle = BorderStyle.None;
+
+
+            this.textBoxYuk = new TextBox();
+            textBoxYuk.Text = "Low quality gold";
+
+            textBoxYuk.Dock = DockStyle.Bottom;
+            textBoxYuk.BorderStyle = BorderStyle.None;
+
+
+            this.textBoxTarix = new TextBox();
+            textBoxTarix.Text = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+
+            textBoxTarix.Dock = DockStyle.Bottom;
+            textBoxTarix.BorderStyle = BorderStyle.None;
+
+
+            //this.TamData = new TextBox();
+            //TamData.Text = "TamData";
+            //TamData.Location = new Point(10, 200);
+            //TamData.Width = 1250;
+            //TamData.Height = 150;
+            //TamData.Multiline = true;
+
         }
 
+
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            string data = serialPort.ReadLine();    
+            this.BeginInvoke(new Action(() =>
+            {
+                data = Regex.Replace(data, @"[^\d]", "");
+                textBox1.Text = data + Environment.NewLine+" "+"Kg";
+                
+            }));
+        }
+
+        
         private void UpdatePageButtonStyles(Button clickedButton)
         {
             foreach (Button btn in pageButtons)
@@ -44,6 +254,55 @@ namespace ScaleManagment
                 }
             }
         }
+
+        private void UpdatePageButtonStyles1(Button clickedButton)
+        {
+            foreach (Button btn in pageButtons1)
+            {
+                if (btn == clickedButton)
+                {
+                    btn.ForeColor = Color.Orange;
+                }
+                else
+                {
+                    btn.ForeColor = Color.Black;
+                }
+            }
+        }
+
+        private void UpdatePageButtonStyles2(Button clickedButton)
+        {
+            foreach (Button btn in pageButtons2)
+            {
+                if (btn == clickedButton)
+                {
+                    btn.ForeColor = Color.Orange;
+                }
+                else
+                {
+                    btn.ForeColor = Color.Black;
+                }
+            }
+        }
+
+        private void UpdatePageButtonStyles3(Button clickedButton)
+        {
+            foreach (Button btn in pageButtons3)
+            {
+                if (btn == clickedButton)
+                {
+                    btn.ForeColor = Color.Orange;
+                }
+                else
+                {
+                    btn.ForeColor = Color.Black;
+                }
+            }
+        }
+
+
+
+
         public void button1_Click(object sender, EventArgs e)
         {
 
@@ -214,9 +473,9 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
-            int PageCount = (int)Math.Round((double)totalCount / pageSize);
+            int PageCount = (int)Math.Ceiling((double)totalCount / pageSize);
 
-            for (int i = 1; i < PageCount; i++)
+            for (int i = 1; i <= PageCount; i++)
             {
                 Button btnPage = new Button { Text = i.ToString(), Location = new Point(450 + i*35, -1), Width = 20 };
                 btnPage.Click += new EventHandler(btnPage1_Click);
@@ -228,12 +487,16 @@ namespace ScaleManagment
                 
             }
 
-            //Button btnPrev = new Button { Text = ">", Location = new Point( , -1), Width = 20 };
-            //btnPrev.Click += new EventHandler(btnPrev_Click);
-            //bottomPanel.Controls.Add(btnPrev);
+            Button btnPrev = new Button { Text = "<", Location = new Point(460, -1), Width = 20 };
+            btnPrev.Click += new EventHandler(btnPrev_Click);
+            btnPrev.FlatStyle = FlatStyle.Flat;
+            btnPrev.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnPrev);
 
-            Button btnNext = new Button { Text = "<", Location = new Point(700, -1), Width = 20 };
+            Button btnNext = new Button { Text = ">", Location = new Point(860, -1), Width = 20 };
             btnNext.Click += new EventHandler(btnNext_Click);
+            btnNext.FlatStyle = FlatStyle.Flat;
+            btnNext.FlatAppearance.BorderSize = 0;
             bottomPanel.Controls.Add(btnNext);
 
 
@@ -241,10 +504,11 @@ namespace ScaleManagment
 
             Label lblSehife = new Label
             {
-                Text = "7/səhifə ",
+                
                 Location = new Point(1000, -1),
                 AutoSize = true
             };
+            lblSehife.Text = PageCount.ToString()+" "+"Səhifə";
 
             Label lblSehifeyekecid = new Label
             {
@@ -253,19 +517,13 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
-            TextBox lblSehifeyekecidPage = new TextBox
-            {
-                Text = "0",
-                Location = new Point(1190, -1),
-                AutoSize = true
-            };
-            lblSehifeyekecidPage.TextChanged += new EventHandler(lblSehifeyekecidPage_TextChanged);
+        
 
             bottomPanel.Controls.Add(lblCount);
            
             bottomPanel.Controls.Add(lblSehife);
             bottomPanel.Controls.Add(lblSehifeyekecid);
-            bottomPanel.Controls.Add(lblSehifeyekecidPage);
+            bottomPanel.Controls.Add(this.lblSehifeyekecidPage);
 
             this.Controls.Add(bottomPanel);
 
@@ -289,32 +547,28 @@ namespace ScaleManagment
 
         private void lblSehifeyekecidPage_TextChanged(object sender, EventArgs e)
         {
-            //if (int.TryParse(lblSehifeyekecidPage.Text, out int pageNumber) && pageNumber > 0)
-            //{
+            if (int.TryParse(lblSehifeyekecidPage.Text, out int pageNumber) && pageNumber > 0)
+            {
 
-            //    currentPage = pageNumber - 1;
+                currentPage = pageNumber - 1;
 
 
-            //    LoadData(currentPage, pageSize);
-            //}
-            //else
-            //{
+                LoadData(currentPage, pageSize);
 
-            //    MessageBox.Show("Zəhmət olmasa düzgün səhifə nömrəsi daxil edin.");
-            //}
+            }
+           
         }
 
        
         private void btnPage1_Click(object sender, EventArgs e)
         {
             Button btn = sender as Button;
-            if (btn != null)
-            {
-                string Text = btn.Text; 
-                //MessageBox.Show("Button adı: " + Text);
-            }
+           
+            string btnText = btn.Text;
 
-            currentPage = int.Parse(Text);
+            
+
+            currentPage = int.Parse(btnText);
             LoadData(currentPage, pageSize);
             UpdatePageButtonStyles(btn);
         }
@@ -375,19 +629,20 @@ namespace ScaleManagment
             addUserForm.ShowDialog();
         }
 
-        public void AddToList(string kartNo, string ad, string soyad,
-                         string avtoNo, string marka,
-                         string mensubiyyet, string status, string grade)
+        public void AddToList(string kartNo, string SurucunAdi, string SonSurucu,
+                         string avtoNo, string avtomodel,
+                         string avtosirket, string avtostatus, string xammal)
         {
             ListViewItem item = new ListViewItem("");
 
             item.SubItems.Add(kartNo);
-            item.SubItems.Add(ad + " " + soyad);
+            item.SubItems.Add(SurucunAdi);
+            item.SubItems.Add(SonSurucu);
             item.SubItems.Add(avtoNo);
-            item.SubItems.Add(marka);
-            item.SubItems.Add(mensubiyyet);
-            item.SubItems.Add(status);
-            item.SubItems.Add(grade);
+            item.SubItems.Add(avtomodel);
+            item.SubItems.Add(avtosirket);
+            item.SubItems.Add(avtostatus);
+            item.SubItems.Add(xammal);
 
             listView.Items.Add(item);
         }
@@ -487,50 +742,144 @@ namespace ScaleManagment
             Font labelFont = new Font("Segoe UI", 9, FontStyle.Regular);
             Font textFont = new Font("Segoe UI", 10, FontStyle.Bold);
 
-            Control CreateField(string label, string value)
-            {
-                Panel p = new Panel { Dock = DockStyle.Fill, Padding = new Padding(0, 13, 0, 2) };
-                Label l = new Label { Text = label, Dock = DockStyle.Top, Font = labelFont, AutoSize = true };
-                p.BackColor = Color.FromArgb(249, 250, 251);
+            
+          
+            Padding fieldPadding = new Padding(6, 8, 6, 8);
 
-                TextBox t = new TextBox { Text = value, Dock = DockStyle.Bottom, Font = textFont, BorderStyle = BorderStyle.None };
-                p.Controls.Add(t);
-                p.Controls.Add(l);
-                return p;
-            }
+           
+            Label label1 = new Label();
+            label1.Text = "Tarazi";
+            label1.Font = labelFont;
+            label1.Dock = DockStyle.Top;
+            label1.AutoSize = true;
 
-            tbl.Controls.Add(CreateField("Tərəzi", "Azermining Group3"), 0, 0);
-            tbl.Controls.Add(CreateField("Tarix/Saat", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")), 1, 0);
-            tbl.Controls.Add(CreateField("Avtomobil nömrəsi", "77JB459"), 2, 0);
-            tbl.Controls.Add(CreateField("Avtomobil modeli", "BMW"), 3, 0);
+         
 
-            tbl.Controls.Add(CreateField("Şirkət", "AMG"), 0, 1);
-            tbl.Controls.Add(CreateField("Sürücü", "Mərəh Mərəh"), 1, 1);
-            tbl.Controls.Add(CreateField("Kart ID", "553695947"), 2, 1);
-            tbl.Controls.Add(CreateField("Yükün növü", "Low quality gold"), 3, 1);
+            Panel panel1 = new Panel();
+            panel1.Dock = DockStyle.Fill;
+            panel1.Padding = fieldPadding;
+            panel1.Controls.Add(this.textBox1);
+            panel1.Controls.Add(label1);
+            tbl.Controls.Add(panel1, 0, 0);
+
+           
+            Label label2 = new Label();
+            label2.Text = "Tarix/saat";
+            label2.Font = labelFont;
+            label2.Dock = DockStyle.Top;
+            label2.AutoSize = true;
+
+          
+
+            Panel panel2 = new Panel();
+            panel2.Dock = DockStyle.Fill;
+            panel2.Padding = fieldPadding;
+            panel2.Controls.Add(this.textBoxTarix);
+            panel2.Controls.Add(label2);
+            tbl.Controls.Add(panel2, 1, 0);
+
+          
+            Label label3 = new Label();
+            label3.Text = "Avtomobil nömrəsi";
+            label3.Font = labelFont;
+            label3.Dock = DockStyle.Top;
+            label3.AutoSize = true;
+
+            
+
+            Panel panel3 = new Panel();
+            panel3.Dock = DockStyle.Fill;
+            panel3.Padding = fieldPadding;
+            panel3.Controls.Add(this.textBoxCarNumber);
+            panel3.Controls.Add(label3);
+            tbl.Controls.Add(panel3, 2, 0);
+
+           
+            Label label4 = new Label();
+            label4.Text = "Avtomobil modeli";
+            label4.Font = labelFont;
+            label4.Dock = DockStyle.Top;
+            label4.AutoSize = true;
+
+           
+
+            Panel panel4 = new Panel();
+            panel4.Dock = DockStyle.Fill;
+            panel4.Padding = fieldPadding;
+            panel4.Controls.Add(this.textBoxCarModel);
+            panel4.Controls.Add(label4);
+            tbl.Controls.Add(panel4, 3, 0);
+
+          
+            Label label5 = new Label();
+            label5.Text = "Şirkət";
+            label5.Font = labelFont;
+            label5.Dock = DockStyle.Top;
+            label5.AutoSize = true;
+
+          
+
+            Panel panel5 = new Panel();
+            panel5.Dock = DockStyle.Fill;
+            panel5.Padding = fieldPadding;
+            panel5.Controls.Add(this.textBoxCarcompany);
+            panel5.Controls.Add(label5);
+            tbl.Controls.Add(panel5, 0, 1);
+
+          
+            Label label6 = new Label();
+            label6.Text = "Sürücü";
+            label6.Font = labelFont;
+            label6.Dock = DockStyle.Top;
+            label6.AutoSize = true;
+
+           
+
+            Panel panel6 = new Panel();
+            panel6.Dock = DockStyle.Fill;
+            panel6.Padding = fieldPadding;
+            panel6.Controls.Add(this.textBoxSurucuAd);
+            panel6.Controls.Add(label6);
+            tbl.Controls.Add(panel6, 1, 1);
+
+            
+            Label label7 = new Label();
+            label7.Text = "Kart ID";
+            label7.Font = labelFont;
+            label7.Dock = DockStyle.Top;
+            label7.AutoSize = true;
+
+      
+
+            Panel panel7 = new Panel();
+            panel7.Dock = DockStyle.Fill;
+            panel7.Padding = fieldPadding;
+            panel7.Controls.Add(this.textBoxId);
+            panel7.Controls.Add(label7);
+            tbl.Controls.Add(panel7, 2, 1);
+
+            Label label8 = new Label();
+            label8.Text = "Yükün növü";
+            label8.Font = labelFont;
+            label8.Dock = DockStyle.Top;
+            label8.AutoSize = true;
+
+            
+
+            Panel panel8 = new Panel();
+            panel8.Dock = DockStyle.Fill;
+            panel8.Padding = fieldPadding;
+            panel8.Controls.Add(this.textBoxYuk);
+            panel8.Controls.Add(label8);
+            tbl.Controls.Add(panel8, 3, 1);
 
             Panel bottomPanel = new Panel { Dock = DockStyle.Fill };
 
-            Label lblRfid = new Label
-            {
-                Text = "RFID status: ",
-                ForeColor = Color.Black,
-                Font = labelFont,
-                AutoSize = true,
-                Location = new Point(12, 12)
-            };
+         
 
-            Label lblOxuyucuyabagli = new Label
-            {
-                Text = " ● Oxuyucuya bağlı",
-                ForeColor = Color.Green,
-                Font = labelFont,
-                AutoSize = true,
-                Location = new Point(lblRfid.Right + 3, lblRfid.Top)
-            };
-
-            bottomPanel.Controls.Add(lblRfid);
-            bottomPanel.Controls.Add(lblOxuyucuyabagli);
+            bottomPanel.Controls.Add(this.lblRfid);
+            bottomPanel.Controls.Add(this.lblOxuyucuyabagli);
+         
 
             RadioButton toggle = new RadioButton
             {
@@ -564,20 +913,95 @@ namespace ScaleManagment
 
             bottomPanel.Controls.Add(toggle);
 
-            Button btnBagla = new Button { Text = "Bağla", ForeColor = Color.Red, FlatStyle = FlatStyle.Flat, Location = new Point(850, 15), Width = 60, Height = 30 };
-            Button btnAc = new Button { Text = "Aç", ForeColor = Color.Green, FlatStyle = FlatStyle.Flat, Location = new Point(930, 15), Width = 40, Height = 30 };
-            Button btnTara = new Button { Text = "Tara", FlatStyle = FlatStyle.Flat, Location = new Point(975, 15), Width = 70, Height = 30 };
+            Button btnBagla = new Button { Text = "Bağla", ForeColor = Color.Red, FlatStyle = FlatStyle.Flat, Location = new Point(830, 15), Width = 60, Height = 30 };
+            btnBagla.Click += new EventHandler(btnBagla_Click);
+            Button btnAc = new Button { Text = "Aç", ForeColor = Color.Green, FlatStyle = FlatStyle.Flat, Location = new Point(910, 15), Width = 40, Height = 30 };
+            btnAc.Click += new EventHandler(btnAc_Click);
+            Button btnTara = new Button { Text = "Tara", FlatStyle = FlatStyle.Flat, Location = new Point(960, 15), Width = 50, Height = 30 };
             btnTara.FlatAppearance.BorderSize = 0;
-            Button btnTesdiqla = new Button { Text = "Təsdiqlə", BackColor = Color.Green, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Location = new Point(1048, 15), Width = 90, Height = 30 };
-            Button btnOxucu = new Button { Text = "Oxucuya bağlan", BackColor = Color.Goldenrod, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Location = new Point(1140, 15), Width = 110, Height = 30 };
-
+            Button btnTesdiqla = new Button { Text = "Təsdiqlə", BackColor = Color.Green, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Location = new Point(1020, 15), Width = 90, Height = 30 };
+            Button btnOxucu = new Button { Text = "Oxucuya bağlan", BackColor = Color.Goldenrod, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Location = new Point(1120, 15), Width = 110, Height = 30 };
+            btnOxucu.Click += new EventHandler(btnOxucu_Click);
             bottomPanel.Controls.AddRange(new Control[] { btnBagla, btnAc, btnTara, btnTesdiqla, btnOxucu });
 
             tbl.Controls.Add(bottomPanel, 0, 2);
             tbl.SetColumnSpan(bottomPanel, 4);
 
+
+           
+           
+            //scaleInfoContent.Controls.Add(this.TamData);
+
             scaleInfoContent.Controls.Add(tbl);
         }
+
+        private void btnBagla_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+      
+
+        private void btnAc_Click(object sender, EventArgs e)
+        {
+            open_door();
+            open_door1();
+        }
+
+        private void open_door1()
+        {
+        }
+           
+        private void open_door()
+        {
+           
+
+
+        }
+
+
+        private void btnOxucu_Click(object sender, EventArgs e)
+        {
+            string ip = "192.168.1.100"; 
+            _handle = Connect(ip);
+
+            if (_handle != IntPtr.Zero)
+            {
+                lblOxuyucuyabagli.Text = "Oxucu qoşuldu!";
+                lblOxuyucuyabagli.ForeColor = Color.Green;
+                _running = true;
+                StartReaderLoop();
+            }
+            else
+            {
+                lblOxuyucuyabagli.Text = "Qoşulma alınmadı!";
+                lblOxuyucuyabagli.ForeColor = Color.Red;
+            }
+        }
+
+        private void StartReaderLoop()
+        {
+            Thread t = new Thread(() =>
+            {
+                while (_running)
+                {
+                    int cardNo;
+                    int ok = getCard(_handle, out cardNo);
+
+                    if (ok == 1) 
+                    {
+                        this.BeginInvoke(new Action(() =>
+                        {
+                            textBoxId.Text = cardNo.ToString();
+                        }));
+                    }
+                    Thread.Sleep(50); 
+                }
+            });
+            t.IsBackground = true;
+            t.Start();
+        }
+
         private void button3_Click(object sender, EventArgs e)
         {
 
@@ -685,16 +1109,15 @@ namespace ScaleManagment
             topPanel.Controls.Add(btnExport);
             scaleInfoContent.Controls.Add(btnExport);
 
-            ListView listView = new ListView
-            {
-                Dock = DockStyle.Fill,
-                View = View.Details,
-                FullRowSelect = true,
-                GridLines = true,
-                CheckBoxes = true,
-                BorderStyle = BorderStyle.None
-
-            };
+        
+            listView = new ListView();
+            listView.View = View.Details;
+            listView.FullRowSelect = true;
+            listView.GridLines = true;
+            listView.Size = new Size(1460, 820);
+            listView.Location = new Point(10, 40);
+            listView.CheckBoxes = true;
+            listView.BorderStyle = BorderStyle.None;
 
             listView.Columns.Add("Giriş çəkisi", 120);
             listView.Columns.Add("Çıxış çəkisi", 120);
@@ -727,46 +1150,25 @@ namespace ScaleManagment
             scaleInfoContent.Controls.Add(listView);
 
 
-            //string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
 
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-            //    string query = "select*from dbo.gates";
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select COUNT(*) count from gates";
 
-            //    SqlCommand cmd = new SqlCommand(query, conn);
-            //    SqlDataReader reader = cmd.ExecuteReader();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
 
-            //    while (reader.Read())
-            //    {
-            //        string giris = reader["weight_in"].ToString();
-            //        string cixis = reader["weight_out"].ToString();
-            //        string umumiceki = reader["weight_total"].ToString();
+                while (reader.Read())
+                {
+                    totalCount1 = int.Parse(reader["count"].ToString());
+                }
 
-            //        DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
-            //        DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
+                reader.Close();
+            }
 
-            //        string kart = reader["card"].ToString();
-            //        string grade = reader["sort"].ToString();
-            //        string post = reader["post"].ToString();
-            //        string masin = reader["carnumber"].ToString();
-
-            //        ListViewItem item = new ListViewItem(giris);
-            //        item.SubItems.Add(cixis);
-            //        item.SubItems.Add(umumiceki);
-            //        item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
-            //        item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
-            //        item.SubItems.Add(kart);
-            //        item.SubItems.Add(grade);
-            //        item.SubItems.Add(post);
-            //        item.SubItems.Add(masin);
-
-            //        listView.Items.Add(item);
-            //    }
-
-            //    reader.Close();
-            //}
-
+            LoadData1(1, pageSize);
             Panel bottomPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -780,41 +1182,40 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
+            int PageCount1 = (int)Math.Ceiling((double)totalCount1 / pageSize);
 
-            Button btnPrev11 = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
-            btnPrev11.Click += new EventHandler(btnPrev11_Click);
+            for (int i = 1; i <= PageCount1; i++)
+            {
+                Button btnPage1 = new Button { Text = i.ToString(), Location = new Point(450 + i * 35, -1), Width = 20 };
+                btnPage1.Click += new EventHandler(btnPage2_Click);
 
-            Button btnPage11 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
-            btnPage11.Click += new EventHandler(btnPage11_Click);
+                btnPage1.FlatStyle = FlatStyle.Flat;
+                btnPage1.FlatAppearance.BorderSize = 0;
+                bottomPanel.Controls.Add(btnPage1);
+                pageButtons1.Add(btnPage1);
 
-            Button btnPage21 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
-            btnPage21.Click += new EventHandler(btnPage21_Click);
+            }
 
-            Button btnPage31 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
-            btnPage31.Click += new EventHandler(btnPage31_Click);
+            Button btnPrev1 = new Button { Text = "<", Location = new Point(460, -1), Width = 20 };
+            btnPrev1.Click += new EventHandler(btnPrev1_Click);
+            btnPrev1.FlatStyle = FlatStyle.Flat;
+            btnPrev1.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnPrev1);
 
-            Button btnPage41 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
-            btnPage41.Click += new EventHandler(btnPage41_Click);
-
-            Button btnPage51 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
-            btnPage51.Click += new EventHandler(btnPage51_Click);
-
-            Button btnPage61 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
-            btnPage61.Click += new EventHandler(btnPage61_Click);
-
-            Button btnPage71 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 }; ;
-            btnPage71.Click += new EventHandler(btnPage71_Click);
-
-            Button btnNext1 = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
-            btnNext1.Click += new EventHandler(btnNext1_click);
+            Button btnNext1 = new Button { Text = ">", Location = new Point(860, -1), Width = 20 };
+            btnNext1.Click += new EventHandler(btnNext1_Click);
+            btnNext1.FlatStyle = FlatStyle.Flat;
+            btnNext1.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnNext1);
 
             Label lblSehife = new Label
             {
-                Text = "7/səhifə ",
+                
                 Location = new Point(1000, -1),
                 AutoSize = true
             };
 
+            lblSehife.Text = PageCount1.ToString()+" "+"Səhifə";
             Label lblSehifeyekecid = new Label
             {
                 Text = "Səhifəyə keç: ",
@@ -823,21 +1224,12 @@ namespace ScaleManagment
             };
 
 
-            foreach (Button btn in new[] { btnPrev11, btnPage11, btnPage21, btnPage31, btnPage41, btnPage51, btnPage61, btnPage71, btnNext1 })
-            {
-                btn.FlatStyle = FlatStyle.Flat;
-                btn.FlatAppearance.BorderSize = 0;
-                bottomPanel.Controls.Add(btn);
-            }
-
-
-            pageButtons = new List<Button> { btnPrev11, btnPage11, btnPage21, btnPage31, btnPage41, btnPage51, btnPage61, btnPage71, btnNext1 };
-            UpdatePageButtonStyles(btnPage11);
 
             bottomPanel.Controls.Add(lblCount);
 
             bottomPanel.Controls.Add(lblSehife);
             bottomPanel.Controls.Add(lblSehifeyekecid);
+            bottomPanel.Controls.Add(this.lblSehifeyekecidPage1);
 
             this.Controls.Add(bottomPanel);
 
@@ -850,83 +1242,45 @@ namespace ScaleManagment
 
 
         }
-
-
-
-
-
-        private void btnNext1_click(object sender, EventArgs e)
+        private void lblSehifeyekecidPage1_TextChanged(object sender, EventArgs e)
         {
-            if (currentPage < pageButtons.Count)
+            if (int.TryParse(lblSehifeyekecidPage1.Text, out int pageNumber) && pageNumber > 0)
             {
-                currentPage++;
+
+                currentPage = pageNumber - 1;
+
+
+                LoadData1(currentPage, pageSize);
+
             }
-
-            LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
         }
 
-        private void btnPrev11_Click(object sender, EventArgs e)
+        private void btnPage2_Click(object sender, EventArgs e)
         {
-            if (currentPage > 1)
-            {
-                currentPage--;
-            }
+            Button btn = sender as Button;
+            string btnText = btn.Text;
+
+
+
+            currentPage = int.Parse(btnText);
             LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
+            UpdatePageButtonStyles1(btn);
         }
 
-        private void btnPage71_Click(object sender, EventArgs e)
+        private void btnNext1_Click(object sender, EventArgs e)
         {
-            currentPage = 7;
-            LoadData1(currentPage, pageSize);
+            LoadData1(currentPage+1, pageSize);
             UpdatePageButtonStyles(sender as Button);
+
         }
 
-        private void btnPage61_Click(object sender, EventArgs e)
+        private void btnPrev1_Click(object sender, EventArgs e)
         {
-            currentPage = 6;
-            LoadData1(currentPage, pageSize);
+            LoadData1(currentPage-1, pageSize);
             UpdatePageButtonStyles(sender as Button);
         }
 
-        private void btnPage51_Click(object sender, EventArgs e)
-        {
-            currentPage = 5;
-            LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage41_Click(object sender, EventArgs e)
-        {
-            currentPage = 4;
-            LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage31_Click(object sender, EventArgs e)
-        {
-            currentPage = 3;
-            LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage21_Click(object sender, EventArgs e)
-        {
-            currentPage = 2;
-            LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage11_Click(object sender, EventArgs e)
-        {
-            currentPage = 1;
-            LoadData1(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-
-
+       
         private void LoadData1(int pageIndex, int pageSize)
         {
            
@@ -961,11 +1315,11 @@ namespace ScaleManagment
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        //listView.Items.Clear();
+                        listView.Items.Clear();
 
                         while (reader.Read())
                         {
-                            // Helpers for nullable dates
+                           
                             string dataOut = reader["data_out"] is DBNull
                              ? ""
                              : Convert.ToDateTime(reader["data_out"]).ToString("dd.MM.yyyy HH:mm");
@@ -1118,7 +1472,7 @@ namespace ScaleManagment
             button1.BackColor = Color.Black;
             button1.ForeColor = Color.White;
 
-            // Digər düymələrin stilini sıfırlayırıq
+           
             button2.BackColor = Color.Black;
             button2.ForeColor = Color.White;
 
@@ -1216,15 +1570,14 @@ namespace ScaleManagment
             topPanel.Controls.Add(btnExport);
             scaleInfoContent.Controls.Add(btnExport);
 
-            ListView listView = new ListView
-            {
-                Dock = DockStyle.Fill,
-                View = View.Details,
-                FullRowSelect = true,
-                GridLines = true,
-                CheckBoxes = true,
-                BorderStyle = BorderStyle.None
-            };
+            listView = new ListView();
+            listView.View = View.Details;
+            listView.FullRowSelect = true;
+            listView.GridLines = true;
+            listView.Size = new Size(1460, 820);
+            listView.Location = new Point(10, 40);
+            listView.CheckBoxes = true;
+            listView.BorderStyle = BorderStyle.None;
 
             listView.Columns.Add("Giriş çəkisi", 120);
             listView.Columns.Add("Çıxış çəkisi", 120);
@@ -1256,46 +1609,26 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(listView);
 
-            //string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
 
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-            //    string query = "select*from dbo.gates";
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select COUNT(*) count from gates";
 
-            //    SqlCommand cmd = new SqlCommand(query, conn);
-            //    SqlDataReader reader = cmd.ExecuteReader();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
 
-            //    while (reader.Read())
-            //    {
-            //        string giris = reader["weight_in"].ToString();
-            //        string cixis = reader["weight_out"].ToString();
-            //        string umumiceki = reader["weight_total"].ToString();
+                while (reader.Read())
+                {
+                    totalCount2 = int.Parse(reader["count"].ToString());
+                }
 
-            //        DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
-            //        DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
+                reader.Close();
+            }
 
-            //        string kart = reader["card"].ToString();
-            //        string grade = reader["sort"].ToString();
-            //        string post = reader["post"].ToString();
-            //        string masin = reader["carnumber"].ToString();
 
-            //        ListViewItem item = new ListViewItem(giris);
-            //        item.SubItems.Add(cixis);
-            //        item.SubItems.Add(umumiceki);
-            //        item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
-            //        item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
-            //        item.SubItems.Add(kart);
-            //        item.SubItems.Add(grade);
-            //        item.SubItems.Add(post);
-            //        item.SubItems.Add(masin);
-
-            //        listView.Items.Add(item);
-            //    }
-
-            //    reader.Close();
-            //}
-
+            LoadData2(1, pageSize);
             Panel bottomPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -1309,52 +1642,44 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
-            Button btnPrev11 = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
-            btnPrev11.Click += new EventHandler(btnPrev11_Click);
+            int PageCount2 = (int)Math.Ceiling((double)totalCount2 / pageSize);
 
-            Button btnPage11 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
-            btnPage11.Click += new EventHandler(btnPage11_Click);
-
-            Button btnPage21 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
-            btnPage21.Click += new EventHandler(btnPage21_Click);
-
-            Button btnPage31 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
-            btnPage31.Click += new EventHandler(btnPage31_Click);
-
-            Button btnPage41 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
-            btnPage41.Click += new EventHandler(btnPage41_Click);
-
-            Button btnPage51 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
-            btnPage51.Click += new EventHandler(btnPage51_Click);
-
-            Button btnPage61 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
-            btnPage61.Click += new EventHandler(btnPage61_Click);
-
-            Button btnPage71 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 }; ;
-            btnPage71.Click += new EventHandler(btnPage71_Click);
-
-            Button btnNext1 = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
-            btnNext1.Click += new EventHandler(btnNext1_click);
-
-
-
-
-            foreach (Button btn in new[] { btnPrev11, btnPage11, btnPage21, btnPage31, btnPage41, btnPage51, btnPage61, btnPage71, btnNext1 })
+            for (int i = 1; i <= PageCount2; i++)
             {
-                btn.FlatStyle = FlatStyle.Flat;
-                btn.FlatAppearance.BorderSize = 0;
-                bottomPanel.Controls.Add(btn);
+                Button btnPage = new Button { Text = i.ToString(), Location = new Point(450 + i * 35, -1), Width = 20 };
+                btnPage.Click += new EventHandler(btnPage3_Click);
+
+                btnPage.FlatStyle = FlatStyle.Flat;
+                btnPage.FlatAppearance.BorderSize = 0;
+                bottomPanel.Controls.Add(btnPage);
+                pageButtons2.Add(btnPage);
+
             }
 
+            Button btnPrev = new Button { Text = "<", Location = new Point(460, -1), Width = 20 };
+            btnPrev.Click += new EventHandler(btnPrev2_Click);
+            btnPrev.FlatStyle = FlatStyle.Flat;
+            btnPrev.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnPrev);
 
-            pageButtons = new List<Button> { btnPrev11, btnPage11, btnPage21, btnPage31, btnPage41, btnPage51, btnPage61, btnPage71, btnNext1 };
-            UpdatePageButtonStyles(btnPage11);
+            Button btnNext = new Button { Text = ">", Location = new Point(860, -1), Width = 20 };
+            btnNext.Click += new EventHandler(btnNext2_Click);
+            btnNext.FlatStyle = FlatStyle.Flat;
+            btnNext.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnNext);
+
+
+
+
+
             Label lblSehife = new Label
             {
-                Text = "7/səhifə ",
+               
                 Location = new Point(1000, -1),
                 AutoSize = true
             };
+
+            lblSehife.Text = PageCount2.ToString() + " " + "Səhifə";
 
             Label lblSehifeyekecid = new Label
             {
@@ -1364,17 +1689,10 @@ namespace ScaleManagment
             };
 
             bottomPanel.Controls.Add(lblCount);
-            //bottomPanel.Controls.Add(btnPrev11);
-            //bottomPanel.Controls.Add(btnPage11);
-            //bottomPanel.Controls.Add(btnPage21);
-            //bottomPanel.Controls.Add(btnPage31);
-            //bottomPanel.Controls.Add(btnPage41);
-            //bottomPanel.Controls.Add(btnPage51);
-            //bottomPanel.Controls.Add(btnPage61);
-            //bottomPanel.Controls.Add(btnPage71);
-            //bottomPanel.Controls.Add(btnNext1);
+          
             bottomPanel.Controls.Add(lblSehife);
             bottomPanel.Controls.Add(lblSehifeyekecid);
+            bottomPanel.Controls.Add(this.lblSehifeyekecidPage2);
 
             this.Controls.Add(bottomPanel);
 
@@ -1385,11 +1703,110 @@ namespace ScaleManagment
             scaleInfoContent.Controls.Add(mainLayout);
         }
 
-       
+        private void lblSehifeyekecidPage2_TextChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(lblSehifeyekecidPage1.Text, out int pageNumber) && pageNumber > 0)
+            {
 
-     
-        
-       public void btnExport1_Click(object sender, EventArgs e)
+                currentPage = pageNumber - 1;
+
+
+                LoadData2(currentPage, pageSize);
+
+            }
+        }
+
+
+        private void btnNext2_Click(object sender, EventArgs e)
+        {
+            LoadData2(currentPage +1, pageSize);
+            UpdatePageButtonStyles(sender as Button);
+        }
+
+        private void btnPrev2_Click(object sender, EventArgs e)
+        {
+            LoadData2(currentPage - 1, pageSize);
+            UpdatePageButtonStyles(sender as Button);
+        }
+
+        private void btnPage3_Click(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            string btnText = btn.Text;
+
+
+
+            currentPage = int.Parse(btnText);
+            LoadData2(currentPage, pageSize);
+            UpdatePageButtonStyles2(btn);
+        }
+
+        private void LoadData2(int pageIndex, int pageSize)
+        {
+
+            string connectionString =
+                "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True";
+
+            string query = @"
+        SELECT
+            weight_in,
+            weight_out,
+            weight_total,
+            data_out,
+            data_in,
+            card,
+            sort,
+            id,
+            post,
+            carnumber,
+            upd
+        FROM dbo.gates
+        ORDER BY data_out
+        OFFSET @PageIndex * @PageSize ROWS
+        FETCH NEXT @PageSize ROWS ONLY;";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@PageIndex", pageIndex);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        listView.Items.Clear();
+
+                        while (reader.Read())
+                        {
+                            
+                            string dataOut = reader["data_out"] is DBNull
+                             ? ""
+                             : Convert.ToDateTime(reader["data_out"]).ToString("dd.MM.yyyy HH:mm");
+                            string dataIn = reader["data_in"] == DBNull.Value
+                                ? ""
+                                : Convert.ToDateTime(reader["data_in"]).ToString("dd.MM.yyyy HH:mm");
+
+                            ListViewItem item = new ListViewItem(reader["weight_in"].ToString());
+                            item.SubItems.Add(reader["weight_out"].ToString());
+                            item.SubItems.Add(reader["weight_total"].ToString());
+                            item.SubItems.Add(dataOut);
+                            item.SubItems.Add(dataIn);
+                            item.SubItems.Add(reader["card"].ToString());
+                            item.SubItems.Add(reader["sort"].ToString());
+                            item.SubItems.Add(reader["id"].ToString());
+                            item.SubItems.Add(reader["post"].ToString());
+                            item.SubItems.Add(reader["carnumber"].ToString());
+                            item.SubItems.Add(reader["upd"] == DBNull.Value ? "" : reader["upd"].ToString());
+
+                            listView.Items.Add(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void btnExport1_Click(object sender, EventArgs e)
         {
 
             ListView listView = new ListView();
@@ -1515,7 +1932,7 @@ namespace ScaleManagment
             button1.BackColor = Color.Black;
             button1.ForeColor = Color.White;
 
-            // Digər düymələrin stilini sıfırlayırıq
+           
             button2.BackColor = Color.Black;
             button2.ForeColor = Color.White;
 
@@ -1704,7 +2121,6 @@ namespace ScaleManagment
             AddStat("Waste çəkisi, ton", "2452");
             AddStat("Tamamlanmamış reyslərin sayı", "2452");
 
-
             ListView listView = new ListView();
             listView.Dock = DockStyle.Fill;
             listView.View = View.Details;
@@ -1714,18 +2130,17 @@ namespace ScaleManagment
             listView.BorderStyle = BorderStyle.None;
 
 
-            listView.Columns.Add("ID", 120);
-            listView.Columns.Add("Kartlar", 140);
-            listView.Columns.Add("Sürücü adı", 150);
-            listView.Columns.Add("Son Sürücü", 150);
-            listView.Columns.Add("Avto nömrə", 150);
-            listView.Columns.Add("Avto model", 150);
-            listView.Columns.Add("Avto Şirkət", 140);
+            listView.Columns.Add("ID", 100);
+            listView.Columns.Add("Kartlar", 130);
+            listView.Columns.Add("Sürücü adı", 130);
+            listView.Columns.Add("Son Sürücü", 130);
+            listView.Columns.Add("Avto nömrə", 130);
+            listView.Columns.Add("Avto model", 130);
+            listView.Columns.Add("Avto Şirkət", 130);
             listView.Columns.Add("Avto status", 100);
 
             listView.Columns.Add("Xammal ", 130);
-            listView.Columns.Add("Upd", 130);
-
+            listView.Columns.Add("Upd", 140);
 
 
             listView.OwnerDraw = true;
@@ -1887,7 +2302,7 @@ namespace ScaleManagment
             button1.BackColor = Color.Black;
             button1.ForeColor = Color.White;
 
-            // Digər düymələrin stilini sıfırlayırıq
+          
             button2.BackColor = Color.Black;
             button2.ForeColor = Color.White;
 
@@ -1990,24 +2405,27 @@ namespace ScaleManagment
             btnNewMenu.ForeColor = Color.White;
             scaleInfoContent.Controls.Add(btnNewMenu);
 
-            ListView listView = new ListView
-            {
-                Dock = DockStyle.Fill,
-                View = View.Details,
-                FullRowSelect = true,
-                GridLines = true,
-                CheckBoxes = true,
-                BorderStyle = BorderStyle.None
-            };
+            listView = new ListView();
+            listView.View = View.Details;
+            listView.FullRowSelect = true;
+            listView.GridLines = true;
+            listView.Size = new Size(1460, 820);
+            listView.Location = new Point(10, 40);
+            listView.CheckBoxes = true;
+            listView.BorderStyle = BorderStyle.None;
 
-            // Sütunlar
-            listView.Columns.Add("Kart nömrəsi", 200);
-            listView.Columns.Add("Sürücü", 200);
-            listView.Columns.Add("Avtomobil nömrəsi", 200);
-            listView.Columns.Add("Avtomobil markası", 200);
-            listView.Columns.Add("Avtomobil statusu", 200);
 
-            listView.Columns.Add("Grade", 200);
+            listView.Columns.Add("ID", 100);
+            listView.Columns.Add("Kartlar", 130);
+            listView.Columns.Add("Sürücü adı", 130);
+            listView.Columns.Add("Son Sürücü", 130);
+            listView.Columns.Add("Avto nömrə", 130);
+            listView.Columns.Add("Avto model", 130);
+            listView.Columns.Add("Avto Şirkət", 130);
+            listView.Columns.Add("Avto status", 100);
+
+            listView.Columns.Add("Xammal ", 130);
+            listView.Columns.Add("Upd", 140);
 
 
 
@@ -2033,45 +2451,23 @@ namespace ScaleManagment
 
             scaleInfoContent.Controls.Add(listView);
 
-            //string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
+            string connectionString = "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True;";
 
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-            //    string query = "select*from dbo.gates";
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "select COUNT(*) count from cards";
 
-            //    SqlCommand cmd = new SqlCommand(query, conn);
-            //    SqlDataReader reader = cmd.ExecuteReader();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
 
-            //    while (reader.Read())
-            //    {
-            //        string giris = reader["weight_in"].ToString();
-            //        string cixis = reader["weight_out"].ToString();
-            //        string umumiceki = reader["weight_total"].ToString();
+                while (reader.Read())
+                {
+                    totalCount3 = int.Parse(reader["count"].ToString());
+                }
 
-            //        DateTime girisTarixi = Convert.ToDateTime(reader["data_in"]);
-            //        DateTime cixisTarixi = Convert.ToDateTime(reader["data_out"]);
-
-            //        string kart = reader["card"].ToString();
-            //        string grade = reader["sort"].ToString();
-            //        string post = reader["post"].ToString();
-            //        string masin = reader["carnumber"].ToString();
-
-            //        ListViewItem item = new ListViewItem(giris);
-            //        item.SubItems.Add(cixis);
-            //        item.SubItems.Add(umumiceki);
-            //        item.SubItems.Add(girisTarixi.ToString("dd.MM.yyyy HH:mm"));
-            //        item.SubItems.Add(cixisTarixi.ToString("dd.MM.yyyy HH:mm"));
-            //        item.SubItems.Add(kart);
-            //        item.SubItems.Add(grade);
-            //        item.SubItems.Add(post);
-            //        item.SubItems.Add(masin);
-
-            //        listView.Items.Add(item);
-            //    }
-
-            //    reader.Close();
-            //}
+                reader.Close();
+            }
 
             Panel bottomPanel = new Panel
             {
@@ -2086,33 +2482,33 @@ namespace ScaleManagment
                 AutoSize = true
             };
 
+            LoadData3(1, pageSize);
+            int PageCount3 = (int)Math.Ceiling((double)totalCount3 / pageSize);
 
-            Button btnPrev111 = new Button { Text = "<", Location = new Point(450, -1), Width = 20 };
-            btnPrev111.Click += new EventHandler(btnPrev111_Click);
+            for (int i = 1; i <= PageCount3; i++)
+            {
+                Button btnPage = new Button { Text = i.ToString(), Location = new Point(450 + i * 35, -1), Width = 20 };
+                btnPage.Click += new EventHandler(btnPage4_Click);
 
-            Button btnPage111 = new Button { Text = "1", Location = new Point(500, -1), Width = 20 };
-            btnPage111.Click += new EventHandler(btnPage111_Click);
+                btnPage.FlatStyle = FlatStyle.Flat;
+                btnPage.FlatAppearance.BorderSize = 0;
+                bottomPanel.Controls.Add(btnPage);
+                pageButtons3.Add(btnPage);
 
-            Button btnPage211 = new Button { Text = "2", Location = new Point(550, -1), Width = 20 };
-            btnPage211.Click += new EventHandler(btnPage211_Click);
+            }
 
-            Button btnPage311 = new Button { Text = "3", Location = new Point(600, -1), Width = 20 };
-            btnPage311.Click += new EventHandler(btnPage311_Click);
+            Button btnPrev = new Button { Text = "<", Location = new Point(460, -1), Width = 20 };
+            btnPrev.Click += new EventHandler(btnPrev_Click);
+            btnPrev.FlatStyle = FlatStyle.Flat;
+            btnPrev.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnPrev);
 
-            Button btnPage411 = new Button { Text = "4", Location = new Point(650, -1), Width = 20 };
-            btnPage411.Click += new EventHandler(btnPage411_Click);
+            Button btnNext = new Button { Text = ">", Location = new Point(860, -1), Width = 20 };
+            btnNext.Click += new EventHandler(btnNext_Click);
+            btnNext.FlatStyle = FlatStyle.Flat;
+            btnNext.FlatAppearance.BorderSize = 0;
+            bottomPanel.Controls.Add(btnNext);
 
-            Button btnPage511 = new Button { Text = "5", Location = new Point(700, -1), Width = 20 };
-            btnPage511.Click += new EventHandler(btnPage511_Click);
-
-            Button btnPage611 = new Button { Text = "6", Location = new Point(750, -1), Width = 20 };
-            btnPage611.Click += new EventHandler(btnPage611_Click);
-
-            Button btnPage711 = new Button { Text = "7", Location = new Point(800, -1), Width = 20 }; ;
-            btnPage711.Click += new EventHandler(btnPage711_Click);
-
-            Button btnNext11 = new Button { Text = ">", Location = new Point(850, -1), Width = 20 };
-            btnNext11.Click += new EventHandler(btnNext11_click);
 
 
 
@@ -2122,10 +2518,11 @@ namespace ScaleManagment
 
             Label lblSehife = new Label
             {
-                Text = "7/səhifə ",
+                
                 Location = new Point(1000, -1),
                 AutoSize = true
             };
+            lblSehife.Text = PageCount3.ToString() +" "+ "Səhifə";
 
             Label lblSehifeyekecid = new Label
             {
@@ -2135,21 +2532,13 @@ namespace ScaleManagment
             };
 
 
-            foreach (Button btn in new[] { btnPrev111, btnPage111, btnPage211, btnPage311, btnPage411, btnPage511, btnPage611, btnPage711, btnNext11 })
-            {
-                btn.FlatStyle = FlatStyle.Flat;
-                btn.FlatAppearance.BorderSize = 0;
-                bottomPanel.Controls.Add(btn);
-            }
-
-
-            pageButtons = new List<Button> { btnPrev111, btnPage111, btnPage211, btnPage311, btnPage411, btnPage511, btnPage611, btnPage711, btnNext11 };
-            UpdatePageButtonStyles(btnPage111);
+          
 
             bottomPanel.Controls.Add(lblCount);
           
             bottomPanel.Controls.Add(lblSehife);
             bottomPanel.Controls.Add(lblSehifeyekecid);
+            bottomPanel.Controls.Add(this.lblSehifeyekecidPage3);
 
             this.Controls.Add(bottomPanel);
 
@@ -2161,141 +2550,92 @@ namespace ScaleManagment
 
         }
 
-        private void btnNext11_click(object sender, EventArgs e)
+        private void lblSehifeyekecidPage3_TextChanged(object sender, EventArgs e)
         {
-            if (currentPage < pageButtons.Count)
+            if (int.TryParse(lblSehifeyekecidPage3.Text, out int pageNumber) && pageNumber > 0)
             {
-                currentPage++;
+
+                currentPage = pageNumber - 1;
+
+
+                LoadData3(currentPage, pageSize);
+
             }
 
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
         }
 
-        private void btnPrev111_Click(object sender, EventArgs e)
+        private void btnPage4_Click(object sender, EventArgs e)
         {
-            if (currentPage > 1)
-            {
-                currentPage--;
-            }
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
+            Button btn = sender as Button;
+            string btnText = btn.Text;
+
+
+
+            currentPage = int.Parse(btnText);
+            LoadData3(currentPage, pageSize);
+            UpdatePageButtonStyles3(btn);
+           
         }
 
-        private void btnPage711_Click(object sender, EventArgs e)
+        private void LoadData3(int pageIndex, int pageSize)
         {
-            currentPage = 7;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage611_Click(object sender, EventArgs e)
-        {
-            currentPage = 6;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage511_Click(object sender, EventArgs e)
-        {
-            currentPage = 5;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage411_Click(object sender, EventArgs e)
-        {
-            currentPage = 4;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage311_Click(object sender, EventArgs e)
-        {
-            currentPage = 3;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage211_Click(object sender, EventArgs e)
-        {
-            currentPage = 2;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void btnPage111_Click(object sender, EventArgs e)
-        {
-            currentPage = 1;
-            LoadData2(currentPage, pageSize);
-            UpdatePageButtonStyles(sender as Button);
-        }
-
-        private void LoadData2(int pageIndex, int pageSize)
-        {
-            
             string connectionString =
                 "Data Source=DESKTOP-IQB2C7N\\SQLEXPRESS;Initial Catalog=erp_azmaind;User ID=sa;Password=Scale123+-;Encrypt=True;TrustServerCertificate=True";
 
             string query = @"
-        SELECT
-            weight_in,
-            weight_out,
-            weight_total,
-            data_out,
-            data_in,
-            card,
-            sort,
-            id,
-            post,
-            carnumber,
-            upd
-        FROM dbo.gates
-        ORDER BY data_out
-        OFFSET @PageIndex * @PageSize ROWS
-        FETCH NEXT @PageSize ROWS ONLY;";
+SELECT
+    id,
+    cards,
+    drivername,
+    driverlast,
+    carnumber,
+    carmodel,
+    carcompany,
+    carstatus,
+    desk,
+    upd
+FROM dbo.cards
+ORDER BY id
+OFFSET (@PageIndex-1) * @PageSize ROWS
+FETCH NEXT @PageSize ROWS ONLY;";
 
             using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
             {
+                
+                cmd.Parameters.AddWithValue("@PageIndex", pageIndex);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    cmd.Parameters.AddWithValue("@PageIndex", pageIndex);
-                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
-                    ListView listView = new ListView();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    listView.Items.Clear();
+
+                    
+                    string S(IDataRecord r, string name) =>
+                        r[name] == DBNull.Value ? "" : r[name].ToString();
+
+                    while (reader.Read())
                     {
-                        listView.Items.Clear();
+                       
+                        ListViewItem item = new ListViewItem(S(reader, "id"));
 
-                        while (reader.Read())
-                        {
-                            // Helpers for nullable dates
-                            string dataOut = reader["data_out"] == DBNull.Value
-                                ? ""
-                                : Convert.ToDateTime(reader["data_out"]).ToString("dd.MM.yyyy HH:mm");
-                            string dataIn = reader["data_in"] == DBNull.Value
-                                ? ""
-                                : Convert.ToDateTime(reader["data_in"]).ToString("dd.MM.yyyy HH:mm");
+                       
+                        item.SubItems.Add(S(reader, "cards"));
+                        item.SubItems.Add(S(reader, "drivername"));
+                        item.SubItems.Add(S(reader, "driverlast"));
+                        item.SubItems.Add(S(reader, "carnumber"));
+                        item.SubItems.Add(S(reader, "carmodel"));
+                        item.SubItems.Add(S(reader, "carcompany"));
+                        item.SubItems.Add(S(reader, "carstatus"));
+                        item.SubItems.Add(S(reader, "desk"));
+                        item.SubItems.Add(S(reader, "upd"));   
 
-                            ListViewItem item = new ListViewItem(reader["weight_in"].ToString());
-                            item.SubItems.Add(reader["weight_out"].ToString());
-                            item.SubItems.Add(reader["weight_total"].ToString());
-                            item.SubItems.Add(dataOut);
-                            item.SubItems.Add(dataIn);
-                            item.SubItems.Add(reader["card"].ToString());
-                            item.SubItems.Add(reader["sort"].ToString());
-                            item.SubItems.Add(reader["id"].ToString());
-                            item.SubItems.Add(reader["post"].ToString());
-                            item.SubItems.Add(reader["camumber"].ToString()); // column name as in SQL result
-                            item.SubItems.Add(reader["upd"] == DBNull.Value ? "" : reader["upd"].ToString());
-
-                            listView.Items.Add(item);
-                        }
+                        listView.Items.Add(item);
                     }
                 }
             }
         }
-
         private void btnDeleteKart_Click(object sender, EventArgs e)
         {
 
@@ -2502,10 +2842,40 @@ namespace ScaleManagment
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            _running = false;
+            if (_handle != IntPtr.Zero)
+            {
+                Disconnect(_handle);
+                _handle = IntPtr.Zero;
+            }
+
+
+
+            try
+            {
+                if (!serialPort.IsOpen)
+                    serialPort.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Port açılamadı: " + ex.Message);
+            }
+
+
             int radius = 5;  // Radius dəyərini istədiyiniz ölçüdə təyin edin.
             GraphicsPath path = new GraphicsPath();
             path.AddEllipse(0, 0, button8.Width, button8.Height);
             button8.Region = new Region(path);
+        }
+
+        private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void scaleInfoContent_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
