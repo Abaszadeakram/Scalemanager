@@ -24,7 +24,7 @@ namespace TereziEla
 
         private void button2_Click(object sender, EventArgs e)
         {
-            // TextBox-ları oxuyuruq və Form1-ə göndəririk
+            
             mainForm.AddToList(
                 textBox1.Text,
                 textBox2.Text,
@@ -75,8 +75,8 @@ namespace TereziEla
 
                         if (rows > 0)
                         {
-                            MessageBox.Show("Məlumat uğurla əlavə olundu.");
-                            // TextBox-ları təmizləmək
+                           
+                          
                             textBox1.Clear();
                             textBox2.Clear();
                             textBox3.Clear();
@@ -97,10 +97,7 @@ namespace TereziEla
             {
                 MessageBox.Show("Xəta baş verdi: " + ex.Message);
             }
-            // Bu formu bağla
-
-
-
+           
         }
 
         private void button3_Click(object sender, EventArgs e)

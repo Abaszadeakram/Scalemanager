@@ -43,7 +43,7 @@ namespace TereziEla
                 return;
             }
 
-            // Indiki tarix
+          
             DateTime now = DateTime.Now;
 
             try
